@@ -2,7 +2,8 @@ Name:          multistate
 Version:       0.1.1
 Cabal-Version: >= 1.8
 Build-Type:    Simple
-license:       AllRightsReserved
+license:       BSD3
+license-file:  LICENSE
 Copyright:     Jan Bracker, Lennart Spitzner
 Maintainer:    Lennart Spitzner <lsp@informatik.uni-kiel.de>
 Author:        Jan Bracker, Lennart Spitzner
