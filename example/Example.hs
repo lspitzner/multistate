@@ -40,6 +40,11 @@ main = evalMultiStateT
      $ withMultiState "ello, World!"
      $ exampleAction
 
+-- output of main:
+--  "Hello, World!
+--   Jello, World!
+--  "
+
 --whatIsNotPossible :: MultiStateT (Cons [Char] Null) IO ()
 --whatIsNotPossible = mGet >>= (lift . print) -- type ambiguous
 
