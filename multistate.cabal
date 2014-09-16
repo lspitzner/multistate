@@ -15,17 +15,46 @@ tested-with:   GHC == 7.8.2
 
 Synopsis: like mtl's ReaderT/StateT, but more than one contained value/type.
 Description:
+  .
+  == Introduction
+  .
   When using multiple ReaderT's or StateT's in the same monad stack, it becomes
   necessary to lift the operations in order to affect a specific transformer.
   Using heterogenous lists (type level functions), a GADT and a corresponding
   type class, this package provides transformers that remove that necessity:
   MultiReaderT/MultiStateT can contain a heterogenous list of values.
+  .
   The type inferred for the getter/setter determines which value is
   read/written.
-  See the Example application for some very basic usage.
+  .
+  == Example
+  .
+  >              -- an IO action wrapped by a MultiState
+  >              -- containing both a Char and a [Char].
+  > examplePrint :: MultiStateT (Cons [Char] (Cons Char Null)) IO ()
+  > examplePrint = do
+  >   c  <- mGet             -- inferred to be :: m Char
+  >   cs <- mGet             -- inferred to be :: m [Char]
+  >   lift $ putStrLn (c:cs)
+  .
+  This computation can be executed in the following way:
+  .
+  > main = evalMultiStateT
+  >      $ withMultiState 'H'
+  >      $ withMultiState "ello, World!"
+  >      $ examplePrint
+  .
+  ( you can find this example as an executable in the package. )
+  .
+  == Known Deficits
+  .
   This package currently lacks a complete set of "lifting instances", i.e.
-  instance definitions for classes such as mtl's MonadReader "over" the newly
-  introduced monad transformers. These "lifting instances" would be necessary
+  instance definitions for classes such as mtl's MonadWriter "over" the newly
+  introduced monad transformers, as in
+  .
+  > instance (MonadWriter w m) => MonadWriter w (MultiStateT c m) where ..
+  .
+  These "lifting instances" would be necessary
   to achieve full compatability with existing transformers. Ping me if you
   find anything specific missing.
 
