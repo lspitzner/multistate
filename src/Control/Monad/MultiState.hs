@@ -52,7 +52,7 @@ newtype MultiStateT x m a = MultiStateT {
 
 type MultiStateTNull = MultiStateT Null
 
-type MultiState x a = MultiStateT x Identity a
+type MultiState x = MultiStateT x Identity
 
 class ContainsType a c where
   setHListElem :: a -> HList c -> HList c

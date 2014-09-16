@@ -52,7 +52,7 @@ newtype MultiReaderT x m a = MultiReaderT {
 
 type MultiReaderTNull = MultiReaderT Null
 
-type MultiReader x a = MultiReaderT x Identity a
+type MultiReader x = MultiReaderT x Identity
 
 class ContainsType a c where
   setHListElem :: a -> HList c -> HList c
