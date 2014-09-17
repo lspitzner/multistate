@@ -29,25 +29,24 @@ Description:
   .
   == Example
   .
-  >              -- an IO action wrapped by a MultiState
-  >              -- containing both a Char and a [Char].
-  > examplePrint :: MultiStateT (Cons [Char] (Cons Char Null)) IO ()
-  > -- the type could also be inferred without any problem.
-  > examplePrint = do
-  >   c  <- mGet             -- inferred to be :: m Char
-  >   cs <- mGet             -- inferred to be :: m [Char]
-  >   lift $ putStrLn (c:cs)
+  > simpleExample :: IO ()
+  > simpleExample = evalMultiStateT
+  >               $ withMultiState 'H'
+  >               $ withMultiState "ello, World!"
+  >               $ do
+  >   -- the monad here is MultiStateT (Cons [Char] (Cons Char Null)) IO
+  >   let combinedPrint = do       -- no type signature necessary
+  >         c  <- mGet             -- type of mGet inferred to be m Char
+  >         cs <- mGet             --              inferred to be m [Char]
+  >         lift $ putStrLn (c:cs)
+  >   combinedPrint
+  >   mSet 'J'                     -- similarly for the setter
+  >   combinedPrint
   .
-  This computation can be executed in the following way:
-  .
-  > main = evalMultiStateT
-  >      $ withMultiState 'H'
-  >      $ withMultiState "ello, World!"
-  >      $ examplePrint
-  .
-  the output is:
+  The output is:
   .
   > Hello, World!
+  > Jello, World!
   .
   ( you can find both this and a more complex example
     in an executable in the package. )

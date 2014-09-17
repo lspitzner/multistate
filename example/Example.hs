@@ -17,30 +17,23 @@ Small example showing
   1) a MultiState containing a Char and a [Char],
   2) the polymorphic mGet,
   3) how to initially put values into the MultiState using withMultiState,
-  4) the type inference at work - note that we omitted all type signatures.
+  4) the type inference at work - note that there was no need to annotate
+     combinedPrint
 -}
 
---examplePrint :: MultiStateT (Cons [Char] (Cons Char Null)) IO ()
--- or more general:
---examplePrint :: ( MonadMultiState [Char] m
---                , MonadMultiState Char m
---                , m~MultiStateT x IO)
---             => m ()
-simpleExamplePrint = do
-  c  <- mGet
-  cs <- mGet
-  lift $ putStrLn (c:cs)
-
-simpleExampleAction = do
-  simpleExamplePrint
+simpleExample :: IO ()
+simpleExample = evalMultiStateT
+              $ withMultiState 'H'
+              $ withMultiState "ello, World!"
+              $ do
+  -- the monad here is MultiStateT (Cons [Char] (Cons Char Null)) IO
+  let combinedPrint = do
+        c  <- mGet
+        cs <- mGet
+        lift $ putStrLn (c:cs)
+  combinedPrint
   mSet 'J'
-  simpleExamplePrint
-
-simpleExample = do
-  evalMultiStateT
-    $ withMultiState 'H'
-    $ withMultiState "ello, World!"
-    $ simpleExampleAction
+  combinedPrint
 
 -- output:
 --  "Hello, World!
