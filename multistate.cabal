@@ -1,5 +1,5 @@
 Name:          multistate
-Version:       0.1.3
+Version:       0.1.3.1
 Cabal-Version: >= 1.8
 Build-Type:    Simple
 license:       BSD3
@@ -43,6 +43,11 @@ Description:
   >      $ withMultiState 'H'
   >      $ withMultiState "ello, World!"
   >      $ examplePrint
+  .
+  the output is:
+  .
+  > Hello, World!
+  > Jello, World!
   .
   ( you can find this example as an executable in the package. )
   .
