@@ -49,7 +49,18 @@ Description:
   > Hello, World!
   > Jello, World!
   .
-  ( you can find this example as an executable in the package. )
+  ( you can find both this and a more complex example
+    in an executable in the package. )
+  .
+  == Error Messages
+  .
+  If you try to execute an action that requires a specific type in the state,
+  but the current state does not contain that type, the error message is
+  something like
+  .
+  > Control.Monad.MultiState.ContainsType Foo Null
+  .
+  where @Foo@ is the missing type.
   .
   == Known Deficits
   .
