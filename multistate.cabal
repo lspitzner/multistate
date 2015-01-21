@@ -1,5 +1,5 @@
 Name:          multistate
-Version:       0.2.0.0
+Version:       0.2.1.0
 Cabal-Version: >= 1.10
 Build-Type:    Simple
 license:       BSD3
@@ -11,7 +11,7 @@ Homepage:      https://github.com/lspitzner/multistate
 Bug-reports:   https://github.com/lspitzner/multistate/issues
 Stability:     Experimental
 category:      Control
-tested-with:   GHC == 7.6.3, GHC == 7.8.3
+tested-with:   GHC == 7.6.3, GHC == 7.8.3, GHC == 7.8.4, GHC == 7.10.0
 
 Synopsis: like mtl's ReaderT/StateT, but more than one contained value/type.
 Description:
@@ -45,7 +45,7 @@ library {
     Control.Monad.MultiReader
   other-modules:
   build-depends:
-    base         >= 4.6   && <4.8,
+    base         >= 4.6   && <4.9,
     mtl          >= 2.1   && <2.3,
     transformers >= 0.3   && <0.5
   default-extensions:
