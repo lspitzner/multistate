@@ -13,17 +13,20 @@ read/written.
 
 ~~~~
 simpleExample :: IO ()
-simpleExample = evalMultiStateT
-              $ withMultiState 'H'
-              $ withMultiState "ello, World!"
-              $ do
+simpleExample = evalMultiStateT          -- start with an empty state,
+                                         --   i.e. :: MultiStateT '[] IO
+              $ withMultiState 'H'       -- "adding" a char to the state
+              $ withMultiState "ello, World!" -- and a string
+              $ do                       -- so:
   -- the monad here is MultiStateT '[String, Char] IO
   let combinedPrint = do       -- no type signature necessary
         c  <- mGet             -- type of mGet inferred to be m Char
         cs <- mGet             --              inferred to be m String
         lift $ putStrLn (c:cs)
   combinedPrint
-  mSet 'J'                     -- similarly for the setter
+  mSet 'J'                     -- we modify the Char in the state.
+                               -- again, the type is inferred,
+                               -- without any manual lifting.
   combinedPrint
 ~~~~
 
@@ -44,9 +47,9 @@ but the current state does not contain that type, the error message is
 something like
 
 ~~~~
-No instance for (Control.Monad.MultiState.ContainsType Foo '[])
+No instance for (Control.Monad.MultiState.ContainsType Foo '[]) x
 ~~~~
-  x
+
 where `Foo` is the missing type.
 
 # Known Deficits
