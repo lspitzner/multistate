@@ -1,3 +1,6 @@
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE TypeOperators #-}
+
 module Main where
 
 
@@ -5,7 +8,6 @@ module Main where
 import Data.Functor.Identity
 import qualified Control.Monad.MultiState as MS
 import qualified Control.Monad.MultiReader as MR
-import Types.Data.List ( Cons, Null )
 
 import Control.Applicative ( Applicative, (<$>), (<*>) )
 
@@ -13,32 +15,32 @@ import Control.Applicative ( Applicative, (<$>), (<*>) )
 
 type Tests = [(Bool, String)]
 
-runEvalMS :: MS.MultiStateT Null Identity a -> a
+runEvalMS :: MS.MultiStateT '[] Identity a -> a
 runEvalMS = runIdentity . MS.evalMultiStateT
-runEvalMR :: MR.MultiReaderT Null Identity a -> a
+runEvalMR :: MR.MultiReaderT '[] Identity a -> a
 runEvalMR = runIdentity . MR.evalMultiReaderT
 
-runnerMS :: a -> MS.MultiStateT (Cons a Null) Identity a -> a
+runnerMS :: a -> MS.MultiStateT '[a] Identity a -> a
 runnerMS x m = runIdentity $ MS.evalMultiStateT $ MS.withMultiState x m
-runnerMR :: a -> MR.MultiReaderT (Cons a Null) Identity a -> a
+runnerMR :: a -> MR.MultiReaderT '[a] Identity a -> a
 runnerMR x m = runIdentity $ MR.evalMultiReaderT $ MR.withMultiReader x m
 
-runnerMS_ :: a -> MS.MultiStateT (Cons a Null) Identity b -> a
+runnerMS_ :: a -> MS.MultiStateT '[a] Identity b -> a
 runnerMS_ x m = runIdentity
               $ MS.evalMultiStateT
               $ MS.withMultiState x (m >> MS.mGet)
-runnerMR_ :: a -> MR.MultiReaderT (Cons a Null) Identity b -> a
+runnerMR_ :: a -> MR.MultiReaderT '[a] Identity b -> a
 runnerMR_ x m = runIdentity
               $ MR.evalMultiReaderT
               $ MR.withMultiReader x (m >> MR.mAsk)
 
-intRunnerMS :: Int -> MS.MultiStateT (Cons Int Null) Identity Int -> Int
+intRunnerMS :: Int -> MS.MultiStateT '[Int] Identity Int -> Int
 intRunnerMS = runnerMS
-intRunnerMS_ :: Int -> MS.MultiStateT (Cons Int Null) Identity b -> Int
+intRunnerMS_ :: Int -> MS.MultiStateT '[Int] Identity b -> Int
 intRunnerMS_ = runnerMS_
-intRunnerMR :: Int -> MR.MultiReaderT (Cons Int Null) Identity Int -> Int
+intRunnerMR :: Int -> MR.MultiReaderT '[Int] Identity Int -> Int
 intRunnerMR = runnerMR
-intRunnerMR_ :: Int -> MR.MultiReaderT (Cons Int Null) Identity b -> Int
+intRunnerMR_ :: Int -> MR.MultiReaderT '[Int] Identity b -> Int
 intRunnerMR_ = runnerMR_
 
 mrAskTuple :: ( Applicative m

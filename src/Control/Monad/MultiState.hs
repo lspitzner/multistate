@@ -1,9 +1,3 @@
-{-# LANGUAGE GADTs #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE OverlappingInstances #-}
-{-# LANGUAGE UndecidableInstances #-}
-
 -- | The multi-valued version of mtl's State / StateT
 -- / MonadState
 module Control.Monad.MultiState
@@ -21,9 +15,6 @@ module Control.Monad.MultiState
   , evalMultiStateT
   , evalMultiStateTWithInitial
   , mapMultiStateT
-  -- * re-exports
-  , Cons -- re-export that stuff to allow writing type signatures.
-  , Null
 ) where
 
 
@@ -42,9 +33,6 @@ import Control.Monad.Writer.Class ( MonadWriter
                                   , writer
                                   , pass )
 
-import Types.Data.List            ( Cons
-                                  , Null
-                                  , Append )
 import Data.Functor.Identity      ( Identity )
 
 import Control.Applicative        ( Applicative(..) )
@@ -77,7 +65,7 @@ newtype MultiStateT x m a = MultiStateT {
 }
 
 -- | A MultiState transformer carrying an empty state.
-type MultiStateTNull = MultiStateT Null
+type MultiStateTNull = MultiStateT '[]
 
 -- | A state monad parameterized by the list of types x of the state to carry.
 --
@@ -98,13 +86,13 @@ class (Monad m) => MonadMultiState a m where
   -- | state get function for values of type @a@.
   mGet :: m a
 
-instance ContainsType a (Cons a xs) where
-  setHListElem a (TCons _ xs) = TCons a xs
-  getHListElem (TCons x _) = x
+instance ContainsType a (a ': xs) where
+  setHListElem a (_ :+: xs) = a :+: xs
+  getHListElem (x :+: _) = x
 
-instance (ContainsType a xs) => ContainsType a (Cons x xs) where
-  setHListElem a (TCons x xs) = TCons x $ setHListElem a xs
-  getHListElem (TCons _ xs) = getHListElem xs
+instance (ContainsType a xs) => ContainsType a (x ': xs) where
+  setHListElem a (x :+: xs) = x :+: setHListElem a xs
+  getHListElem (_ :+: xs) = getHListElem xs
 
 instance (Functor f) => Functor (MultiStateT x f) where
   fmap f = MultiStateT . fmap f . runMultiStateTRaw
@@ -126,13 +114,13 @@ instance MonadTrans (MultiStateT x) where
 -- Think "Execute this computation with this additional value as state".
 withMultiState :: Monad m
                => x                           -- ^ The value to add
-               -> MultiStateT (Cons x xs) m a -- ^ The computation using the
+               -> MultiStateT (x ': xs) m a -- ^ The computation using the
                                               -- enlarged state
                -> MultiStateT xs m a          -- ^ An computation using the
                                               -- smaller state
 withMultiState x k = MultiStateT $ do
   s <- get
-  (a, TCons _ s') <- lift $ runStateT (runMultiStateTRaw k) (TCons x s)
+  (a, _ :+: s') <- lift $ runStateT (runMultiStateTRaw k) (x :+: s)
   put s'
   return a
 
@@ -150,8 +138,8 @@ withMultiStates :: Monad m
                                                   --   enlarged state
                 -> MultiStateT ys m a             -- ^ A computation using the
                                                   -- smaller state
-withMultiStates TNull = id
-withMultiStates (TCons x xs) = withMultiStates xs . withMultiState x
+withMultiStates HNil = id
+withMultiStates (x :+: xs) = withMultiStates xs . withMultiState x
 
 instance (Monad m, ContainsType a c)
       => MonadMultiState a (MultiStateT c m) where
@@ -177,8 +165,8 @@ instance (MonadTrans t, Monad (t m), MonadMultiState a m)
 -- * 'evalMultiStateTWithInitial'
 -- * simplify the computation using 'withMultiState' / 'withMultiStates',
 --   then use 'evalMultiStateT' on the result.
-evalMultiStateT :: Monad m => MultiStateT Null m a -> m a
-evalMultiStateT k = evalStateT (runMultiStateTRaw k) TNull
+evalMultiStateT :: Monad m => MultiStateT '[] m a -> m a
+evalMultiStateT k = evalStateT (runMultiStateTRaw k) HNil
 
 -- | Evaluate a state computation with the given initial state.
 evalMultiStateTWithInitial :: Monad m

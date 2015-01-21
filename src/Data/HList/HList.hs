@@ -1,5 +1,7 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE TypeOperators #-}
 
 -- | A GADT HList implementation
 --
@@ -7,35 +9,40 @@
 -- for something so simple.
 module Data.HList.HList
   ( HList(..)
+  , Append
 ) where
 
 
 
 import Prelude hiding (reverse)
 
-import Types.Data.List ( Cons, Null )
 import Data.Monoid
 
 
 
-data HList a where
-  TCons :: x -> HList xs -> HList (Cons x xs)
-  TNull :: HList Null
+data HList :: [*] -> * where
+  HNil :: HList '[]
+  (:+:) :: x -> HList xs -> HList (x ': xs)
+  -- TCons :: x -> HList xs -> HList (Cons x xs)
+  -- TNull :: HList Null
 
-instance Show (HList Null) where
+instance Show (HList '[]) where
   show _ = "()"
 
-instance (Show a, Show (HList b)) => Show (HList (Cons a b)) where
-  show (TCons x y) = "(" ++ show x ++ "," ++ show y ++ ")"
+instance (Show a, Show (HList b)) => Show (HList (a ': b)) where
+  show (x :+: y) = "(" ++ show x ++ "," ++ show y ++ ")"
 
-instance Monoid (HList Null) where
-  mempty = TNull
-  mappend _ _ = TNull
+instance Monoid (HList '[]) where
+  mempty = HNil
+  mappend _ _ = HNil
 
 instance (Monoid x, Monoid (HList xs))
-      => Monoid (HList (Cons x xs))
+      => Monoid (HList (x ': xs))
   where
-    mempty = TCons mempty mempty
-    mappend (TCons x1 xs1) (TCons x2 xs2) =
-      TCons (x1 `mappend` x2)
-            (xs1 `mappend` xs2)
+    mempty = mempty :+: mempty
+    mappend (x1 :+: xs1) (x2 :+: xs2) = (x1 `mappend` x2)
+                                    :+: (xs1 `mappend` xs2)
+
+type family Append (l1::[*]) (l2::[*]) :: [*]
+type instance Append '[] l2 = l2
+type instance Append (car1 ': cdr2) l2 = car1 ': Append cdr2 l2

@@ -1,9 +1,3 @@
-{-# LANGUAGE GADTs #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE OverlappingInstances #-}
-{-# LANGUAGE UndecidableInstances #-}
-
 -- | The multi-valued version of mtl's Reader / ReaderT
 -- / MonadReader
 module Control.Monad.MultiReader
@@ -20,9 +14,6 @@ module Control.Monad.MultiReader
   , evalMultiReaderT
   , evalMultiReaderTWithInitial
   , mapMultiReaderT
-  -- * re-exports
-  , Cons -- re-export that stuff to allow writing type signatures.
-  , Null
 ) where
 
 
@@ -41,9 +32,6 @@ import Control.Monad.Writer.Class ( MonadWriter
                                   , writer
                                   , pass )
 
-import Types.Data.List            ( Cons
-                                  , Null
-                                  , Append )
 import Data.Functor.Identity      ( Identity )
 
 import Control.Applicative        ( Applicative(..) )
@@ -76,7 +64,7 @@ newtype MultiReaderT x m a = MultiReaderT {
 }
 
 -- | A MultiReader transformer carrying an empty state.
-type MultiReaderTNull = MultiReaderT Null
+type MultiReaderTNull = MultiReaderT '[]
 
 -- | A reader monad parameterized by the list of types x of the environment
 -- / input to carry.
@@ -123,13 +111,13 @@ type classes.
 --instance (Monad m) => MonadMultiReaderRaw a (MultiReaderT a m) where
 --  mAskRaw = MultiReaderT $ get
 
-instance ContainsType a (Cons a xs) where
-  setHListElem a (TCons _ xs) = TCons a xs
-  getHListElem (TCons x _) = x
+instance ContainsType a (a ': xs) where
+  setHListElem a (_ :+: xs) = a :+: xs
+  getHListElem (x :+: _) = x
 
-instance (ContainsType a xs) => ContainsType a (Cons x xs) where
-  setHListElem a (TCons x xs) = TCons x $ setHListElem a xs
-  getHListElem (TCons _ xs) = getHListElem xs
+instance (ContainsType a xs) => ContainsType a (x ': xs) where
+  setHListElem a (x :+: xs) = x :+: setHListElem a xs
+  getHListElem (_ :+: xs) = getHListElem xs
 
 instance (Functor f) => Functor (MultiReaderT x f) where
   fmap f = MultiReaderT . fmap f . runMultiReaderTRaw
@@ -151,11 +139,11 @@ instance MonadTrans (MultiReaderT x) where
 -- Think "Execute this computation with this additional value as environment".
 withMultiReader :: Monad m
                 => x
-                -> MultiReaderT (Cons x xs) m a
+                -> MultiReaderT (x ': xs) m a
                 -> MultiReaderT xs m a
 withMultiReader x k = MultiReaderT $ do
   s <- get
-  (a, TCons _ s') <- lift $ runStateT (runMultiReaderTRaw k) (TCons x s)
+  (a, _  :+: s') <- lift $ runStateT (runMultiReaderTRaw k) (x :+: s)
   put s'
   return a
 
@@ -171,8 +159,8 @@ withMultiReaders :: Monad m
                  => HList xs
                  -> MultiReaderT (Append xs ys) m a
                  -> MultiReaderT ys m a
-withMultiReaders TNull = id
-withMultiReaders (TCons x xs) = withMultiReaders xs . withMultiReader x
+withMultiReaders HNil = id
+withMultiReaders (x :+: xs) = withMultiReaders xs . withMultiReader x
 
 instance (Monad m, ContainsType a c)
       => MonadMultiReader a (MultiReaderT c m) where
@@ -198,8 +186,8 @@ mAskRaw = MultiReaderT get
 -- * 'evalMultiReaderTWithInitial'
 -- * simplify the computation using 'withMultiReader' / 'withMultiReaders',
 --   then use 'evalMultiReaderT' on the result.
-evalMultiReaderT :: Monad m => MultiReaderT Null m a -> m a
-evalMultiReaderT k = evalStateT (runMultiReaderTRaw k) TNull
+evalMultiReaderT :: Monad m => MultiReaderT '[] m a -> m a
+evalMultiReaderT k = evalStateT (runMultiReaderTRaw k) HNil
 
 -- | Evaluate a reader computation with the given environment.
 evalMultiReaderTWithInitial :: Monad m
