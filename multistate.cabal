@@ -43,6 +43,7 @@ library {
     Data.HList.HList
     Control.Monad.MultiState
     Control.Monad.MultiReader
+    Control.Monad.MultiWriter
   other-modules:
   build-depends:
     base         >= 4.6   && <4.9,
