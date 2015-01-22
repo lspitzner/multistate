@@ -43,6 +43,16 @@ instance (Monoid x, Monoid (HList xs))
     mappend (x1 :+: xs1) (x2 :+: xs2) = (x1 `mappend` x2)
                                     :+: (xs1 `mappend` xs2)
 
+instance Eq (HList '[]) where
+  HNil == HNil = True
+  HNil /= HNil = False
+
+instance (Eq x, Eq (HList xs))
+      => Eq (HList (x ': xs))
+  where
+    x1 :+: xr1 == x2 :+: xr2 = x1==x2 && xr1==xr2
+    x1 :+: xr1 /= x2 :+: xr2 = x1/=x2 || xr1/=xr2
+
 type family Append (l1::[*]) (l2::[*]) :: [*]
 type instance Append '[] l2 = l2
 type instance Append (car1 ': cdr2) l2 = car1 ': Append cdr2 l2
