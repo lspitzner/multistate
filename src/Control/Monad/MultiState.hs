@@ -51,15 +51,15 @@ import Control.Monad              ( liftM
 -- 
 -- This heterogenous list is represented using Types.Data.List, i.e:
 -- 
---   * @'Null'@ - The empty list,
---   * @'Cons' a b@ - A list where @/a/@ is an arbitrary type
+--   * @'[]@ - The empty list,
+--   * @a ': b@ - A list where @/a/@ is an arbitrary type
 --     and @/b/@ is the rest list.
 -- 
 -- For example,
 -- 
--- > MultiStateT (Cons Int (Cons Bool Null)) :: (* -> *) -> (* -> *)
+-- > MultiStateT '[Int, Bool] :: (* -> *) -> (* -> *)
 -- 
--- is a State wrapper containing the types [Int,Bool].
+-- is a State wrapper containing the types [Int, Bool].
 newtype MultiStateT x m a = MultiStateT {
   runMultiStateTRaw :: StateT (HList x) m a
 }

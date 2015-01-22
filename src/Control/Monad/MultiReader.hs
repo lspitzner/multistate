@@ -50,15 +50,15 @@ import Control.Monad              ( liftM
 -- 
 -- This heterogenous list is represented using Types.Data.List, i.e:
 -- 
---   * @'Null'@ - The empty list,
---   * @'Cons' a b@ - A list where @/a/@ is an arbitrary type
+--   * @'[]@ - The empty list,
+--   * @a ': b@ - A list where @/a/@ is an arbitrary type
 --     and @/b/@ is the rest list.
 -- 
 -- For example,
 -- 
--- > MultiReaderT (Cons Int (Cons Bool Null)) :: (* -> *) -> (* -> *)
+-- > MultiReaderT '[Int, Bool] :: (* -> *) -> (* -> *)
 -- 
--- is a Reader wrapper containing the types [Int,Bool].
+-- is a Reader transformer containing the types [Int, Bool].
 newtype MultiReaderT x m a = MultiReaderT {
   runMultiReaderTRaw :: StateT (HList x) m a
 }
