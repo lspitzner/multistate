@@ -1,10 +1,12 @@
 # Introduction
 
-When using multiple ReaderT's or StateT's in the same monad stack, it becomes
-necessary to lift the operations in order to affect a specific transformer.
+When using multiple Reader/Writer/State transformers in the same monad
+stack, it becomes necessary to lift the operations in order to affect a
+specific transformer.
 Using heterogenous lists (and all kinds of GHC extensions magic),
 this package provides transformers that remove that necessity:
-MultiReaderT/MultiStateT can contain a heterogenous list of values.
+MultiReaderT/MultiWriterT/MultiStateT can contain a heterogenous
+list of values.
 
 The type inferred for the getter/setter determines which value is
 read/written.
@@ -82,3 +84,8 @@ find anything specific missing.
         ~~~~
 
     * Remove dependency on `tfp` package.
+
+* 0.3.0.0:
+    
+    * Add MultiWriter
+    * support ghc-7.10
