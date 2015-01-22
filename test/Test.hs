@@ -1,13 +1,18 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GADTs #-}
 
 module Main where
 
 
 
 import Data.Functor.Identity
+import Data.HList.HList
+import Data.Monoid
 import qualified Control.Monad.MultiState as MS
 import qualified Control.Monad.MultiReader as MR
+import qualified Control.Monad.MultiWriter as MW
 
 import Control.Applicative ( Applicative, (<$>), (<*>) )
 
@@ -19,11 +24,17 @@ runEvalMS :: MS.MultiStateT '[] Identity a -> a
 runEvalMS = runIdentity . MS.evalMultiStateT
 runEvalMR :: MR.MultiReaderT '[] Identity a -> a
 runEvalMR = runIdentity . MR.evalMultiReaderT
+runExecMW :: Monoid (HList x) => MW.MultiWriterT x Identity a -> HList x
+runExecMW = runIdentity . MW.execMultiWriterT
 
 runnerMS :: a -> MS.MultiStateT '[a] Identity a -> a
-runnerMS x m = runIdentity $ MS.evalMultiStateT $ MS.withMultiState x m
+runnerMS x m = runEvalMS $ MS.withMultiState x m
 runnerMR :: a -> MR.MultiReaderT '[a] Identity a -> a
-runnerMR x m = runIdentity $ MR.evalMultiReaderT $ MR.withMultiReader x m
+runnerMR x m = runEvalMR $ MR.withMultiReader x m
+runnerMW :: Monoid a => MW.MultiWriterT '[a] Identity b -> a
+runnerMW m = case runExecMW m of (x :+: _) -> x
+-- TODO: ghc bug?: warning on:
+-- runnerMW m = case runExecMW m of (x :+: HNil) -> x
 
 runnerMS_ :: a -> MS.MultiStateT '[a] Identity b -> a
 runnerMS_ x m = runIdentity
@@ -42,6 +53,8 @@ intRunnerMR :: Int -> MR.MultiReaderT '[Int] Identity Int -> Int
 intRunnerMR = runnerMR
 intRunnerMR_ :: Int -> MR.MultiReaderT '[Int] Identity b -> Int
 intRunnerMR_ = runnerMR_
+stringRunnerMW :: MW.MultiWriterT '[String] Identity b -> String
+stringRunnerMW = runnerMW
 
 mrAskTuple :: ( Applicative m
               , MR.MonadMultiReader a m
@@ -125,8 +138,21 @@ testsMultiReader =
     , "getRaw")
   ]
 
+testsMultiWriter :: Tests
+testsMultiWriter =
+  [ ("" == stringRunnerMW (return ())
+    , "multiwriter 1-0")
+  , ("a" == stringRunnerMW (MW.mTell "a") -- this type annotation is kinda
+                                            -- annoying..
+    , "multiwriter 1-1")
+  , ("ab" == stringRunnerMW (MW.mTell "a" >> MW.mTell "b")
+    , "multiwriter 1-2")
+  , (("ab" :+: ([True] :+: HNil)) == runExecMW (MW.mTell "a" >> MW.mTell [True] >> MW.mTell "b")
+    , "multiwriter 2")
+  ]
+
 tests :: Tests
-tests = testsMultiState ++ testsMultiReader
+tests = testsMultiState ++ testsMultiReader ++ testsMultiWriter
 
 test13MR :: Bool
 test13MR = runIdentity
