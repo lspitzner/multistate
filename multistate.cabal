@@ -13,13 +13,16 @@ Stability:     Experimental
 category:      Control
 tested-with:   GHC == 7.6.3, GHC == 7.8.3, GHC == 7.8.4, GHC == 7.10.0
 
-Synopsis: like mtl's ReaderT/StateT, but more than one contained value/type.
+Synopsis: like mtl's ReaderT/WriterT/StateT, but more than one contained
+          value/type.
 Description:
-  When using multiple ReaderT's or StateT's in the same monad stack, it becomes
-  necessary to lift the operations in order to affect a specific transformer.
+  When using multiple Read/Write/State transformers in the same monad stack,
+  it becomes necessary to lift the operations in order to affect a specific
+  transformer.
   Using heterogenous lists (and all kinds of GHC extensions magic),
   this package provides transformers that remove that necessity:
-  MultiReaderT/MultiStateT can contain a heterogenous list of values.
+  MultiReaderT/MultiWriterT/MultiStateT can contain a heterogenous list of
+  values.
   .
   See the <https://github.com/lspitzner/multistate README> for
   a longer description.
