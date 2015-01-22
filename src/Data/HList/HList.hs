@@ -26,6 +26,8 @@ data HList :: [*] -> * where
   -- TCons :: x -> HList xs -> HList (Cons x xs)
   -- TNull :: HList Null
 
+infixr 5 :+:
+
 instance Show (HList '[]) where
   show _ = "()"
 

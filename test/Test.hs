@@ -147,7 +147,7 @@ testsMultiWriter =
     , "multiwriter 1-1")
   , ("ab" == stringRunnerMW (MW.mTell "a" >> MW.mTell "b")
     , "multiwriter 1-2")
-  , (("ab" :+: ([True] :+: HNil)) == runExecMW (MW.mTell "a" >> MW.mTell [True] >> MW.mTell "b")
+  , (("ab" :+: [True] :+: HNil) == runExecMW (MW.mTell "a" >> MW.mTell [True] >> MW.mTell "b")
     , "multiwriter 2")
   ]
 
