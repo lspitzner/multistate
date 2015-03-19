@@ -10,9 +10,9 @@ module Main where
 import Data.Functor.Identity
 import Data.HList.HList
 import Data.Monoid
-import qualified Control.Monad.MultiState as MS
-import qualified Control.Monad.MultiReader as MR
-import qualified Control.Monad.MultiWriter as MW
+import qualified Control.Monad.Trans.MultiState as MS
+import qualified Control.Monad.Trans.MultiReader as MR
+import qualified Control.Monad.Trans.MultiWriter as MW
 
 import Control.Applicative ( Applicative, (<$>), (<*>) )
 

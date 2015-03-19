@@ -1,8 +1,7 @@
 -- | The multi-valued version of mtl's Reader / ReaderT
 -- / MonadReader
-module Control.Monad.MultiReader {-# DEPRECATED "Use Control.Monad.Trans.MultiReader instead" #-}
-  (
-  -- * MultiReaderT
+module Control.Monad.Trans.MultiReader
+  ( -- * MultiReaderT
     MultiReaderT(..)
   , MultiReaderTNull
   , MultiReader

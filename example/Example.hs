@@ -7,7 +7,7 @@ module Main where
 
 
 
-import Control.Monad.MultiState
+import Control.Monad.Trans.MultiState
 
 import Control.Applicative ( (<$>), (<*>) )
 

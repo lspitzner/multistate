@@ -2,7 +2,7 @@
 
 -- | The multi-valued version of mtl's Writer / WriterT
 -- / MonadWriter
-module Control.Monad.MultiWriter {-# DEPRECATED "Use Control.Monad.Trans.MultiWriter instead" #-}
+module Control.Monad.Trans.MultiWriter
   ( -- * MultiWriterT
     MultiWriterT(..)
   , MultiWriterTNull

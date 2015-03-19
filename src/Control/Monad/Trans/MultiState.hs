@@ -1,6 +1,6 @@
 -- | The multi-valued version of mtl's State / StateT
 -- / MonadState
-module Control.Monad.MultiState {-# DEPRECATED "Use Control.Monad.Trans.MultiState instead" #-}
+module Control.Monad.Trans.MultiState
   (
   -- * MultiStateT
     MultiStateT(..)
