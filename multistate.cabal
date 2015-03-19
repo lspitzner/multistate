@@ -16,7 +16,7 @@ tested-with:   GHC == 7.6.3, GHC == 7.8.3, GHC == 7.8.4, GHC == 7.10.0
 Synopsis: like mtl's ReaderT / WriterT / StateT, but more than one
           contained value/type.
 Description:
-  When using multiple Read/Write/State transformers in the same monad stack,
+  When using multiple Read / Write / State transformers in the same monad stack,
   it becomes necessary to lift the operations in order to affect a specific
   transformer.
   Using heterogenous lists (and all kinds of GHC extensions magic),
