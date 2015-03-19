@@ -29,10 +29,10 @@ data HList :: [*] -> * where
 infixr 5 :+:
 
 instance Show (HList '[]) where
-  show _ = "()"
+  show _ = "HNil"
 
 instance (Show a, Show (HList b)) => Show (HList (a ': b)) where
-  show (x :+: y) = "(" ++ show x ++ "," ++ show y ++ ")"
+  show (x :+: y) = "(" ++ show x ++ ":+:" ++ show y ++ ")"
 
 instance Monoid (HList '[]) where
   mempty = HNil
