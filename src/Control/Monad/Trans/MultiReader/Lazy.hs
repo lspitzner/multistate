@@ -17,6 +17,7 @@ module Control.Monad.Trans.MultiReader.Lazy
 
 
 import Data.HList.HList
+import Data.HList.ContainsType
 
 import Control.Monad.Trans.MultiReader.Class ( MonadMultiReader(..) )
 
@@ -71,18 +72,6 @@ type MultiReaderTNull = MultiReaderT '[]
 --
 -- Similar to @Reader r = ReaderT r Identity@
 type MultiReader x = MultiReaderT x Identity
-
-class ContainsType a c where
-  setHListElem :: a -> HList c -> HList c
-  getHListElem :: HList c -> a
-
-instance ContainsType a (a ': xs) where
-  setHListElem a (_ :+: xs) = a :+: xs
-  getHListElem (x :+: _) = x
-
-instance (ContainsType a xs) => ContainsType a (x ': xs) where
-  setHListElem a (x :+: xs) = x :+: setHListElem a xs
-  getHListElem (_ :+: xs) = getHListElem xs
 
 instance (Functor f) => Functor (MultiReaderT x f) where
   fmap f = MultiReaderT . fmap f . runMultiReaderTRaw

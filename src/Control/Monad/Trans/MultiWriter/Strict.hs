@@ -20,6 +20,7 @@ where
 
 
 import Data.HList.HList
+import Data.HList.ContainsType
 
 import Control.Monad.Trans.MultiWriter.Class ( MonadMultiWriter(..) )
 
@@ -72,18 +73,6 @@ newtype MultiWriterT x m a = MultiWriterT {
 type MultiWriterTNull = MultiWriterT '[]
 
 type MultiWriter x a = MultiWriterT x Identity a
-
-class ContainsType a c where
-  setHListElem :: a -> HList c -> HList c
-  getHListElem :: HList c -> a
-
-instance ContainsType a (a ': xs) where
-  setHListElem a (_ :+: xs) = a :+: xs
-  getHListElem (x :+: _) = x
-
-instance (ContainsType a xs) => ContainsType a (x ': xs) where
-  setHListElem a (x :+: xs) = x :+: setHListElem a xs
-  getHListElem (_ :+: xs) = getHListElem xs
 
 instance (Functor f) => Functor (MultiWriterT x f) where
   fmap f = MultiWriterT . fmap f . runMultiWriterTRaw

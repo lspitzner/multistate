@@ -44,6 +44,7 @@ library {
     Haskell2010
   exposed-modules:
     Data.HList.HList
+    Data.HList.ContainsType
     Control.Monad.MultiState
     Control.Monad.MultiReader
     Control.Monad.MultiWriter
