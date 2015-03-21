@@ -89,3 +89,10 @@ find anything specific missing.
     
     * Add MultiWriter
     * support ghc-7.10
+
+* 0.4.0.0:
+
+    * Refactor from Control.Monad.* to Control.Monad.Trans.*
+    * Put classes (MonadMulti*) into separate modules
+    * Add Strict and Lazy variants
+    * Deprecate previous modules
