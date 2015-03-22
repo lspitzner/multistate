@@ -151,8 +151,7 @@ evalMultiReaderTWithInitial c k = evalStateT (runMultiReaderTRaw k) c
 --
 -- Note that there is a difference to mtl's ReaderT,
 -- where it is /not/ possible to modify the environment.
-mapMultiReaderT :: (m (a, HList w)
-                -> m' (a', HList w))
+mapMultiReaderT :: (m (a, HList w) -> m' (a', HList w))
                 -> MultiReaderT w m a
                 -> MultiReaderT w m' a'
 mapMultiReaderT f = MultiReaderT . mapStateT f . runMultiReaderTRaw

@@ -82,7 +82,7 @@ instance (Applicative m, Monad m) => Applicative (MultiReaderT x m) where
 
 instance Monad m => Monad (MultiReaderT x m) where
   return = MultiReaderT . return
-  k >>= f = MultiReaderT $ runMultiReaderTRaw k >>= (runMultiReaderTRaw . f)
+  k >>= f = MultiReaderT $ runMultiReaderTRaw k >>= runMultiReaderTRaw . f
 
 instance MonadTrans (MultiReaderT x) where
   lift = MultiReaderT . lift
@@ -95,11 +95,8 @@ withMultiReader :: Monad m
                 => x
                 -> MultiReaderT (x ': xs) m a
                 -> MultiReaderT xs m a
-withMultiReader x k = MultiReaderT $ do
-  s <- get
-  ~(a, s') <- lift $ runStateT (runMultiReaderTRaw k) (x :+: s)
-  put $ case s' of _ :+: sr' -> sr'
-  return a
+withMultiReader x k = MultiReaderT $
+  get >>= lift . evalStateT (runMultiReaderTRaw k) . (:+:) x
 
 -- | Adds a heterogenous list of elements to the environment, thereby
 -- transforming a MultiReaderT carrying an environment with values
@@ -113,7 +110,7 @@ withMultiReaders :: Monad m
                  => HList xs
                  -> MultiReaderT (Append xs ys) m a
                  -> MultiReaderT ys m a
-withMultiReaders HNil = id
+withMultiReaders HNil       = id
 withMultiReaders (x :+: xs) = withMultiReaders xs . withMultiReader x
 
 instance (Monad m, ContainsType a c)
@@ -151,8 +148,7 @@ evalMultiReaderTWithInitial c k = evalStateT (runMultiReaderTRaw k) c
 --
 -- Note that there is a difference to mtl's ReaderT,
 -- where it is /not/ possible to modify the environment.
-mapMultiReaderT :: (m (a, HList w)
-                -> m' (a', HList w))
+mapMultiReaderT :: (m (a, HList w) -> m' (a', HList w))
                 -> MultiReaderT w m a
                 -> MultiReaderT w m' a'
 mapMultiReaderT f = MultiReaderT . mapStateT f . runMultiReaderTRaw

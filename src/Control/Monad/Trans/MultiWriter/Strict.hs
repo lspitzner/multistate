@@ -112,19 +112,21 @@ instance (Monad m, ContainsType a c, Monoid a)
     put $ setHListElem (getHListElem x `mappend` v) x
 
 runMultiWriterT :: (Monad m, Monoid (HList l))
-                => MultiWriterT l m a -> m (a, HList l)
+                => MultiWriterT l m a
+                -> m (a, HList l)
 runMultiWriterT k = runStateT (runMultiWriterTRaw k) mempty
 
 execMultiWriterT :: (Monad m, Monoid (HList l))
-                 => MultiWriterT l m a -> m (HList l)
+                 => MultiWriterT l m a
+                 -> m (HList l)
 execMultiWriterT k = execStateT (runMultiWriterTRaw k) mempty
 
 mGetRaw :: Monad m => MultiWriterT a m (HList a)
 mGetRaw = MultiWriterT get
 
 mapMultiWriterT :: (m (a, HList w) -> m' (a', HList w))
-               -> MultiWriterT w m  a
-               -> MultiWriterT w m' a'
+                -> MultiWriterT w m  a
+                -> MultiWriterT w m' a'
 mapMultiWriterT f = MultiWriterT . mapStateT f . runMultiWriterTRaw
 
 -- foreign lifting instances

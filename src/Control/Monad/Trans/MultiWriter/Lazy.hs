@@ -108,15 +108,17 @@ withMultiWriters (x :+: xs) = withMultiWriters xs . withMultiWriter x
 instance (Monad m, ContainsType a c, Monoid a)
       => MonadMultiWriter a (MultiWriterT c m) where
   mTell v = MultiWriterT $ do
-    ~x <- get
+    x <- get
     put $ setHListElem (getHListElem x `mappend` v) x
 
 runMultiWriterT :: (Monad m, Monoid (HList l))
-                => MultiWriterT l m a -> m (a, HList l)
+                => MultiWriterT l m a
+                -> m (a, HList l)
 runMultiWriterT k = runStateT (runMultiWriterTRaw k) mempty
 
 execMultiWriterT :: (Monad m, Monoid (HList l))
-                 => MultiWriterT l m a -> m (HList l)
+                 => MultiWriterT l m a
+                 -> m (HList l)
 execMultiWriterT k = execStateT (runMultiWriterTRaw k) mempty
 
 mGetRaw :: Monad m => MultiWriterT a m (HList a)
