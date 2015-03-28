@@ -9,13 +9,27 @@ module Control.Monad.Trans.MultiWriter
   , MultiWriter
   -- * MonadMultiWriter class
   , MonadMultiWriter(..)
-  -- * functions
-  , mGetRaw
-  , withMultiWriter
-  , withMultiWriters
+  -- * run-functions
   , runMultiWriterT
-  , execMultiWriterT
+  , runMultiWriterTAW
+  , runMultiWriterTWA
+  , runMultiWriterTW
+  , runMultiWriterTNil
+  , runMultiWriterTNil_
+  -- * with-functions (single Writer)
+  , withMultiWriter
+  , withMultiWriterAW
+  , withMultiWriterWA
+  , withMultiWriterW
+  -- * with-functions (multiple Writers)
+  , withMultiWriters
+  , withMultiWritersAW
+  , withMultiWritersWA
+  , withMultiWritersW
+  -- * other functions
   , mapMultiWriterT
+  , mGetRaw
+  , mPutRaw
   )
 where
 

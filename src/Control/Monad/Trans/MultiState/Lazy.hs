@@ -7,13 +7,33 @@ module Control.Monad.Trans.MultiState.Lazy
   , MultiState
   -- * MonadMultiState class
   , MonadMultiState(..)
-  -- * functions
-  , mGetRaw
+  -- * run-functions
+  , runMultiStateT
+  , runMultiStateTAS
+  , runMultiStateTSA
+  , runMultiStateTA
+  , runMultiStateTS
+  , runMultiStateT_
+  , runMultiStateTNil
+  , runMultiStateTNil_
+  -- * with-functions (single state)
   , withMultiState
+  , withMultiStateAS
+  , withMultiStateSA
+  , withMultiStateA
+  , withMultiStateS
+  , withMultiState_
+  -- * with-functions (multiple states)
   , withMultiStates
-  , evalMultiStateT
-  , evalMultiStateTWithInitial
+  , withMultiStatesAS
+  , withMultiStatesSA
+  , withMultiStatesA
+  , withMultiStatesS
+  , withMultiStates_
+  -- * other functions
   , mapMultiStateT
+  , mGetRaw
+  , mPutRaw
 ) where
 
 
@@ -26,6 +46,7 @@ import Control.Monad.Trans.MultiState.Class
 import Control.Monad.State.Lazy   ( StateT(..)
                                   , MonadState(..)
                                   , evalStateT
+                                  , execStateT
                                   , mapStateT )
 import Control.Monad.Trans.Class  ( MonadTrans
                                   , lift )
@@ -39,7 +60,8 @@ import Data.Functor.Identity      ( Identity )
 
 import Control.Applicative        ( Applicative(..) )
 import Control.Monad              ( liftM
-                                  , ap )
+                                  , ap
+                                  , void )
 
 
 
@@ -74,6 +96,8 @@ type MultiStateTNull = MultiStateT '[]
 -- Similar to @State s = StateT s Identity@
 type MultiState x = MultiStateT x Identity
 
+-- some instances
+
 instance (Functor f) => Functor (MultiStateT x f) where
   fmap f = MultiStateT . fmap f . runMultiStateTRaw
 
@@ -88,73 +112,19 @@ instance Monad m => Monad (MultiStateT x m) where
 instance MonadTrans (MultiStateT x) where
   lift = MultiStateT . lift
 
--- | Adds an element to the state, thereby transforming a MultiStateT over
--- values with types /(x:xs)/ to a MultiStateT over /xs/.
---
--- Think "Execute this computation with this additional value as state".
-withMultiState :: Monad m
-               => x                           -- ^ The value to add
-               -> MultiStateT (x ': xs) m a -- ^ The computation using the
-                                              -- enlarged state
-               -> MultiStateT xs m a          -- ^ An computation using the
-                                              -- smaller state
-withMultiState x k = MultiStateT $ do
-  s <- get
-  (a, s') <- lift $ runStateT (runMultiStateTRaw k) (x :+: s)
-  put $ case s' of _ :+: sr' -> sr'
-  return a
-
--- | Adds a heterogenous list of elements to the state, thereby
--- transforming a MultiStateT over values with types /xs++ys/ to a MultiStateT
--- over /ys/.
---
--- Similar to recursively adding single values with 'withMultiState'.
---
--- Note that /ys/ can be Null; in that case the return value can be
--- evaluated further using 'evalMultiStateT'.
-withMultiStates :: Monad m
-                => HList xs                       -- ^ The list of values to add
-                -> MultiStateT (Append xs ys) m a -- ^ The computation using the
-                                                  --   enlarged state
-                -> MultiStateT ys m a             -- ^ A computation using the
-                                                  -- smaller state
-withMultiStates HNil = id
-withMultiStates (x :+: xs) = withMultiStates xs . withMultiState x
-
 instance (Monad m, ContainsType a c)
       => MonadMultiState a (MultiStateT c m) where
   mSet v = MultiStateT $ get >>= put . setHListElem v
   mGet = MultiStateT $ liftM getHListElem get
 
--- | Evaluate an empty state computation.
---
--- Because the state is empty, no initial state must be provided.
---
--- Currently it is not directly possible to extract the final state of a
--- computation (similar to @execStateT@ and @runStateT@ for mtl's StateT),
--- but you can use 'mGetRaw' if you need such functionality.
---
--- If you want to evaluate a computation over any non-Null state, either
--- use
--- 
--- * 'evalMultiStateTWithInitial'
--- * simplify the computation using 'withMultiState' / 'withMultiStates',
---   then use 'evalMultiStateT' on the result.
-evalMultiStateT :: Monad m => MultiStateT '[] m a -> m a
-evalMultiStateT k = evalStateT (runMultiStateTRaw k) HNil
-
--- | Evaluate a state computation with the given initial state.
-evalMultiStateTWithInitial :: Monad m
-                           => HList a           -- ^ The initial state
-                           -> MultiStateT a m b -- ^ The computation to evaluate
-                           -> m b
-evalMultiStateTWithInitial c k = evalStateT (runMultiStateTRaw k) c
+-- methods
 
 -- | A raw extractor of the contained HList (i.e. the complete state).
---
--- For a possible usecase, see 'withMultiStates'.
 mGetRaw :: Monad m => MultiStateT a m (HList a)
 mGetRaw = MultiStateT get
+
+mPutRaw :: Monad m => HList s -> MultiStateT s m ()
+mPutRaw = MultiStateT . put
 
 -- | Map both the return value and the state of a computation
 -- using the given function.
@@ -162,6 +132,71 @@ mapMultiStateT :: (m (a, HList w) -> m' (a', HList w))
                -> MultiStateT w m  a
                -> MultiStateT w m' a'
 mapMultiStateT f = MultiStateT . mapStateT f . runMultiStateTRaw
+
+runMultiStateT   :: Functor m => HList s -> MultiStateT s m a -> m (a, HList s)
+runMultiStateTAS :: Functor m => HList s -> MultiStateT s m a -> m (a, HList s)
+runMultiStateTSA :: Monad m   => HList s -> MultiStateT s m a -> m (HList s, a)
+runMultiStateTA  :: Monad m   => HList s -> MultiStateT s m a -> m a
+runMultiStateTS  :: Monad m   => HList s -> MultiStateT s m a -> m (HList s)
+runMultiStateT_  :: Functor m => HList s -> MultiStateT s m a -> m ()
+-- ghc too dumb for this shortcut, unfortunately
+-- runMultiStateT   s k = runMultiStateTNil $ withMultiStates s k
+-- runMultiStateTAS s k = runMultiStateTNil $ withMultiStatesAS s k
+-- runMultiStateTSA s k = runMultiStateTNil $ withMultiStatesSA s k
+-- runMultiStateTA  s k = runMultiStateTNil $ withMultiStatesA s k
+-- runMultiStateTS  s k = runMultiStateTNil $ withMultiStatesS s k
+-- runMultiStateT_  s k = runMultiStateTNil $ withMultiStates_ s k
+runMultiStateT   s k = runMultiStateTAS s k
+runMultiStateTAS s k = runStateT (runMultiStateTRaw k) s
+runMultiStateTSA s k = (\(~(a,b)) -> (b,a)) `liftM` runStateT (runMultiStateTRaw k) s
+runMultiStateTA  s k = evalStateT (runMultiStateTRaw k) s
+runMultiStateTS  s k = execStateT (runMultiStateTRaw k) s
+runMultiStateT_  s k = void $ runStateT (runMultiStateTRaw k) s
+
+runMultiStateTNil  ::   Monad m => MultiStateT '[] m a -> m a
+runMultiStateTNil_ :: Functor m => MultiStateT '[] m a -> m ()
+runMultiStateTNil  k = evalStateT (runMultiStateTRaw k) HNil
+runMultiStateTNil_ k = void $ runStateT (runMultiStateTRaw k) HNil
+
+withMultiState   :: Monad m => s -> MultiStateT (s ': ss) m a -> MultiStateT ss m (a, s)
+withMultiStateAS :: Monad m => s -> MultiStateT (s ': ss) m a -> MultiStateT ss m (a, s)
+withMultiStateSA :: Monad m => s -> MultiStateT (s ': ss) m a -> MultiStateT ss m (s, a)
+withMultiStateA  :: Monad m => s -> MultiStateT (s ': ss) m a -> MultiStateT ss m a
+withMultiStateS  :: Monad m => s -> MultiStateT (s ': ss) m a -> MultiStateT ss m s
+withMultiState_  :: (Functor m, Monad m) => s -> MultiStateT (s ': ss) m a -> MultiStateT ss m ()
+withMultiState = withMultiStateAS
+withMultiStateAS x k = MultiStateT $ do
+  s <- get
+  ~(a, s') <- lift $ runStateT (runMultiStateTRaw k) (x :+: s)
+  case s' of x' :+: sr' -> do put sr'; return (a, x')
+withMultiStateSA s k = (\(~(a,b)) -> (b,a)) `liftM` withMultiStateAS s k
+withMultiStateA  s k = fst `liftM` withMultiStateAS s k
+withMultiStateS  s k = snd `liftM` withMultiStateAS s k
+withMultiState_  s k = void $ withMultiStateAS s k
+
+withMultiStates   :: Monad m => HList s1 -> MultiStateT (Append s1 s2) m a -> MultiStateT s2 m (a, HList s1)
+withMultiStatesAS :: Monad m => HList s1 -> MultiStateT (Append s1 s2) m a -> MultiStateT s2 m (a, HList s1)
+withMultiStatesSA :: Monad m => HList s1 -> MultiStateT (Append s1 s2) m a -> MultiStateT s2 m (HList s1, a)
+withMultiStatesA  :: Monad m => HList s1 -> MultiStateT (Append s1 s2) m a -> MultiStateT s2 m a
+withMultiStatesS  :: Monad m => HList s1 -> MultiStateT (Append s1 s2) m a -> MultiStateT s2 m (HList s1)
+withMultiStates_  :: (Functor m, Monad m) => HList s1 -> MultiStateT (Append s1 s2) m a -> MultiStateT s2 m ()
+withMultiStates = withMultiStatesAS
+withMultiStatesAS HNil       = liftM (\r -> (r, HNil))
+withMultiStatesAS (x :+: xs) = liftM (\(~(~(a, x'), xs')) -> (a, x' :+: xs'))
+                        . withMultiStatesAS xs 
+                        . withMultiStateAS x
+withMultiStatesSA HNil       = liftM (\r -> (HNil, r))
+withMultiStatesSA (x :+: xs) = liftM (\(~(~(a, x'), xs')) -> (x' :+: xs', a))
+                        . withMultiStatesAS xs 
+                        . withMultiStateAS x
+withMultiStatesA  HNil       = id
+withMultiStatesA  (x :+: xs) = withMultiStatesA xs . withMultiStateA x
+withMultiStatesS  HNil       = liftM (const HNil)
+withMultiStatesS (x :+: xs)  = liftM (\(~(x', xs')) -> x' :+: xs')
+                        . withMultiStatesAS xs
+                        . withMultiStateS x
+withMultiStates_  HNil       = liftM (const ())
+withMultiStates_ (x :+: xs)  = withMultiStates_ xs . withMultiState_ x
 
 -- foreign lifting instances
 

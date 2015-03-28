@@ -1,4 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 -- | The multi-valued version of mtl's Writer / WriterT
 module Control.Monad.Trans.MultiWriter.Lazy
@@ -7,13 +9,27 @@ module Control.Monad.Trans.MultiWriter.Lazy
     MultiWriterT(..)
   , MultiWriterTNull
   , MultiWriter
-  -- * functions
-  , mGetRaw
-  , withMultiWriter
-  , withMultiWriters
+  -- * run-functions
   , runMultiWriterT
-  , execMultiWriterT
+  , runMultiWriterTAW
+  , runMultiWriterTWA
+  , runMultiWriterTW
+  , runMultiWriterTNil
+  , runMultiWriterTNil_
+  -- * with-functions (single Writer)
+  , withMultiWriter
+  , withMultiWriterAW
+  , withMultiWriterWA
+  , withMultiWriterW
+  -- * with-functions (multiple Writers)
+  , withMultiWriters
+  , withMultiWritersAW
+  , withMultiWritersWA
+  , withMultiWritersW
+  -- * other functions
   , mapMultiWriterT
+  , mGetRaw
+  , mPutRaw
   )
 where
 
@@ -27,6 +43,7 @@ import Control.Monad.Trans.MultiWriter.Class ( MonadMultiWriter(..) )
 import Control.Monad.State.Lazy   ( StateT(..)
                                   , MonadState(..)
                                   , execStateT
+                                  , evalStateT
                                   , mapStateT )
 import Control.Monad.Trans.Class  ( MonadTrans
                                   , lift )
@@ -40,7 +57,8 @@ import Data.Functor.Identity      ( Identity )
 
 import Control.Applicative        ( Applicative(..) )
 import Control.Monad              ( liftM
-                                  , ap )
+                                  , ap
+                                  , void )
 
 import Data.Monoid
 
@@ -88,46 +106,92 @@ instance Monad m => Monad (MultiWriterT x m) where
 instance MonadTrans (MultiWriterT x) where
   lift = MultiWriterT . lift
 
-withMultiWriter :: Monad m
-               => x
-               -> MultiWriterT (x ': xs) m a
-               -> MultiWriterT xs m a
-withMultiWriter x k = MultiWriterT $ do
-  s <- get
-  ~(a, s') <- lift $ runStateT (runMultiWriterTRaw k) (x :+: s)
-  put $ case s' of _ :+: sr' -> sr'
-  return a
-withMultiWriters
- :: Monad m
-                => HList xs
-                -> MultiWriterT (Append xs ys) m a
-                -> MultiWriterT ys m a
-withMultiWriters HNil = id
-withMultiWriters (x :+: xs) = withMultiWriters xs . withMultiWriter x
-
 instance (Monad m, ContainsType a c, Monoid a)
       => MonadMultiWriter a (MultiWriterT c m) where
   mTell v = MultiWriterT $ do
     x <- get
     put $ setHListElem (getHListElem x `mappend` v) x
 
-runMultiWriterT :: (Monad m, Monoid (HList l))
-                => MultiWriterT l m a
-                -> m (a, HList l)
-runMultiWriterT k = runStateT (runMultiWriterTRaw k) mempty
+-- methods
 
-execMultiWriterT :: (Monad m, Monoid (HList l))
-                 => MultiWriterT l m a
-                 -> m (HList l)
-execMultiWriterT k = execStateT (runMultiWriterTRaw k) mempty
-
+-- | A raw extractor of the contained HList (i.e. the complete state).
 mGetRaw :: Monad m => MultiWriterT a m (HList a)
 mGetRaw = MultiWriterT get
 
+mPutRaw :: Monad m => HList s -> MultiWriterT s m ()
+mPutRaw = MultiWriterT . put
+
+-- | Map both the return value and the state of a computation
+-- using the given function.
 mapMultiWriterT :: (m (a, HList w) -> m' (a', HList w))
                -> MultiWriterT w m  a
                -> MultiWriterT w m' a'
 mapMultiWriterT f = MultiWriterT . mapStateT f . runMultiWriterTRaw
+
+runMultiWriterT   :: (Monoid (HList w), Functor m) => MultiWriterT w m a -> m (a, HList w)
+runMultiWriterTAW :: (Monoid (HList w), Functor m) => MultiWriterT w m a -> m (a, HList w)
+runMultiWriterTWA :: (Monoid (HList w),   Monad m) => MultiWriterT w m a -> m (HList w, a)
+runMultiWriterTW  :: (Monoid (HList w),   Monad m) => MultiWriterT w m a -> m (HList w)
+runMultiWriterT     = runMultiWriterTAW
+runMultiWriterTAW k = runStateT (runMultiWriterTRaw k) mempty
+runMultiWriterTWA k = (\(~(a,b)) -> (b,a)) `liftM` runStateT (runMultiWriterTRaw k) mempty
+runMultiWriterTW  k = execStateT (runMultiWriterTRaw k) mempty
+
+runMultiWriterTNil  ::   Monad m => MultiWriterT '[] m a -> m a
+runMultiWriterTNil_ :: Functor m => MultiWriterT '[] m a -> m ()
+runMultiWriterTNil  k = evalStateT (runMultiWriterTRaw k) HNil
+runMultiWriterTNil_ k = void $ runStateT (runMultiWriterTRaw k) HNil
+
+withMultiWriter   :: (Monoid w, Monad m) => MultiWriterT (w ': ws) m a -> MultiWriterT ws m (a, w)
+withMultiWriterAW :: (Monoid w, Monad m) => MultiWriterT (w ': ws) m a -> MultiWriterT ws m (a, w)
+withMultiWriterWA :: (Monoid w, Monad m) => MultiWriterT (w ': ws) m a -> MultiWriterT ws m (w, a)
+withMultiWriterW  :: (Monoid w, Monad m) => MultiWriterT (w ': ws) m a -> MultiWriterT ws m w
+withMultiWriter = withMultiWriterAW
+withMultiWriterAW k = MultiWriterT $ do
+  w <- get
+  ~(a, w') <- lift $ runStateT (runMultiWriterTRaw k) (mempty :+: w)
+  case w' of x' :+: wr' -> do put wr'; return (a, x')
+withMultiWriterWA k = (\(~(a,b)) -> (b,a)) `liftM` withMultiWriterAW k
+withMultiWriterW  k = snd `liftM` withMultiWriterAW k
+
+withMultiWriters   :: forall w1 w2 m a
+               . (Monoid (HList w1), Monad m, HInit w1)
+              => MultiWriterT (Append w1 w2) m a
+              -> MultiWriterT w2 m (a, HList w1)
+withMultiWritersAW :: forall w1 w2 m a
+               . (Monoid (HList w1), Monad m, HInit w1)
+              => MultiWriterT (Append w1 w2) m a
+              -> MultiWriterT w2 m (a, HList w1)
+withMultiWritersWA :: forall w1 w2 m a
+               . (Monoid (HList w1), Monad m, HInit w1)
+              => MultiWriterT (Append w1 w2) m a
+              -> MultiWriterT w2 m (HList w1, a)
+-- withMultiWritersA would have too much ambiguity for what the ws are
+-- (one could use a Proxy, but that does not seem to be worth the effort)
+-- same reasoning for withMultiWriters_
+withMultiWritersW  :: forall w1 w2 m a
+               . (Monoid (HList w1), Monad m, HInit w1)
+              => MultiWriterT (Append w1 w2) m a
+              -> MultiWriterT w2 m (HList w1)
+withMultiWriters = withMultiWritersAW
+withMultiWritersAW k = MultiWriterT $ do
+  w <- get
+  ~(a, ws') <- lift $ runStateT (runMultiWriterTRaw k) (hAppend (mempty :: HList w1) w)
+  let (o, w') = hSplit ws'
+  put w'
+  return $ (a, o)
+withMultiWritersWA k = MultiWriterT $ do
+  w <- get
+  ~(a, ws') <- lift $ runStateT (runMultiWriterTRaw k) (hAppend (mempty :: HList w1) w)
+  let (o, w') = hSplit ws'
+  put w'
+  return $ (o, a)
+withMultiWritersW k  = MultiWriterT $ do
+  w <- get
+  ws' <- lift $ execStateT (runMultiWriterTRaw k) (hAppend (mempty :: HList w1) w)
+  let (o, w') = hSplit ws'
+  put w'
+  return $ o
 
 -- foreign lifting instances
 

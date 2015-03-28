@@ -7,13 +7,21 @@ module Control.Monad.Trans.MultiReader
   , MultiReader
   -- * MonadMultiReader class
   , MonadMultiReader(..)
-  -- * functions
-  , mAskRaw
+  -- * run-functions
+  , runMultiReaderT
+  , runMultiReaderT_
+  , runMultiReaderTNil
+  , runMultiReaderTNil_
+  -- * with-functions (single Reader)
   , withMultiReader
+  , withMultiReader_
+  -- * with-functions (multiple Readers)
   , withMultiReaders
-  , evalMultiReaderT
-  , evalMultiReaderTWithInitial
+  , withMultiReaders_
+  -- * other functions
   , mapMultiReaderT
+  , mGetRaw
+  , mPutRaw
 ) where
 
 

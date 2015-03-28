@@ -14,6 +14,8 @@ import Control.Applicative ( (<$>), (<*>) )
 import Control.Monad.Trans ( lift )
 import Control.Monad.Writer
 
+
+
 {-
 Small example showing
   1) a MultiState containing a Char and a String,
@@ -24,7 +26,7 @@ Small example showing
 -}
 
 simpleExample :: IO ()
-simpleExample = evalMultiStateT
+simpleExample = runMultiStateTNil_
               $ withMultiState 'H'              -- add a Char to the state
               $ withMultiState "ello, World!" -- add a String to the state
               $ do
@@ -78,7 +80,7 @@ logAccount = do
   tell $ ["account balance = " ++ show x]
 
 accountCalculation :: Writer [String] ()
-accountCalculation = evalMultiStateT $ do
+accountCalculation = runMultiStateTNil_ $ do
   tell ["account calculation start"]
   -- we cannot use any of the account methods here, because state is empty
   -- logAccount

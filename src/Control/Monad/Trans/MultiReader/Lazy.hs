@@ -5,13 +5,21 @@ module Control.Monad.Trans.MultiReader.Lazy
     MultiReaderT(..)
   , MultiReaderTNull
   , MultiReader
-  -- * functions
-  , mAskRaw
+  -- * run-functions
+  , runMultiReaderT
+  , runMultiReaderT_
+  , runMultiReaderTNil
+  , runMultiReaderTNil_
+  -- * with-functions (single Reader)
   , withMultiReader
+  , withMultiReader_
+  -- * with-functions (multiple Readers)
   , withMultiReaders
-  , evalMultiReaderT
-  , evalMultiReaderTWithInitial
+  , withMultiReaders_
+  -- * other functions
   , mapMultiReaderT
+  , mGetRaw
+  , mPutRaw
 ) where
 
 
@@ -37,7 +45,8 @@ import Data.Functor.Identity      ( Identity )
 
 import Control.Applicative        ( Applicative(..) )
 import Control.Monad              ( liftM
-                                  , ap )
+                                  , ap
+                                  , void )
 
 
 
@@ -87,61 +96,18 @@ instance Monad m => Monad (MultiReaderT x m) where
 instance MonadTrans (MultiReaderT x) where
   lift = MultiReaderT . lift
 
--- | Adds an element to the environment, thereby transforming a MultiReaderT
--- carrying an environment with types /(x:xs)/ to a a MultiReaderT with /xs/.
---
--- Think "Execute this computation with this additional value as environment".
-withMultiReader :: Monad m
-                => x
-                -> MultiReaderT (x ': xs) m a
-                -> MultiReaderT xs m a
-withMultiReader x k = MultiReaderT $
-  get >>= lift . evalStateT (runMultiReaderTRaw k) . (:+:) x
-
--- | Adds a heterogenous list of elements to the environment, thereby
--- transforming a MultiReaderT carrying an environment with values
--- over types /xs++ys/ to a MultiReaderT over /ys/.
---
--- Similar to recursively adding single values with 'withMultiReader'.
---
--- Note that /ys/ can be Null; in that case the return value can be
--- evaluated further using 'evalMultiReaderT'.
-withMultiReaders :: Monad m
-                 => HList xs
-                 -> MultiReaderT (Append xs ys) m a
-                 -> MultiReaderT ys m a
-withMultiReaders HNil       = id
-withMultiReaders (x :+: xs) = withMultiReaders xs . withMultiReader x
-
 instance (Monad m, ContainsType a c)
       => MonadMultiReader a (MultiReaderT c m) where
   mAsk = MultiReaderT $ liftM getHListElem get
 
--- | A raw extractor of the contained HList (i.e. the complete environment).
---
--- For a possible usecase, see 'withMultiReaders'.
-mAskRaw :: Monad m => MultiReaderT a m (HList a)
-mAskRaw = MultiReaderT get
+-- methods
 
--- | Evaluate a computation over an empty environment.
---
--- Because the environment is empty, it does not need to be provided.
---
--- If you want to evaluate a computation over any non-Null environment, either
--- use
--- 
--- * 'evalMultiReaderTWithInitial'
--- * simplify the computation using 'withMultiReader' / 'withMultiReaders',
---   then use 'evalMultiReaderT' on the result.
-evalMultiReaderT :: Monad m => MultiReaderT '[] m a -> m a
-evalMultiReaderT k = evalStateT (runMultiReaderTRaw k) HNil
+-- | A raw extractor of the contained HList (i.e. the complete Reader).
+mGetRaw :: Monad m => MultiReaderT a m (HList a)
+mGetRaw = MultiReaderT get
 
--- | Evaluate a reader computation with the given environment.
-evalMultiReaderTWithInitial :: Monad m
-                            => HList a            -- ^ The initial state
-                            -> MultiReaderT a m b -- ^ The computation to evaluate
-                            -> m b
-evalMultiReaderTWithInitial c k = evalStateT (runMultiReaderTRaw k) c
+mPutRaw :: Monad m => HList s -> MultiReaderT s m ()
+mPutRaw = MultiReaderT . put
 
 -- | Map both the return value and the environment of a computation
 -- using the given function.
@@ -149,9 +115,35 @@ evalMultiReaderTWithInitial c k = evalStateT (runMultiReaderTRaw k) c
 -- Note that there is a difference to mtl's ReaderT,
 -- where it is /not/ possible to modify the environment.
 mapMultiReaderT :: (m (a, HList w) -> m' (a', HList w))
-                -> MultiReaderT w m a
-                -> MultiReaderT w m' a'
+               -> MultiReaderT w m  a
+               -> MultiReaderT w m' a'
 mapMultiReaderT f = MultiReaderT . mapStateT f . runMultiReaderTRaw
+
+runMultiReaderT  ::   Monad m => HList r -> MultiReaderT r m a -> m a
+runMultiReaderT_ :: Functor m => HList r -> MultiReaderT r m a -> m ()
+-- ghc too dumb for this shortcut, unfortunately
+-- runMultiReaderT   s k = runMultiReaderTNil $ withMultiReaders s k
+-- runMultiReaderT_  s k = runMultiReaderTNil $ withMultiReaders_ s k
+runMultiReaderT  s k = evalStateT (runMultiReaderTRaw k) s
+runMultiReaderT_ s k = void $ runStateT (runMultiReaderTRaw k) s
+
+runMultiReaderTNil  ::   Monad m => MultiReaderT '[] m a -> m a
+runMultiReaderTNil_ :: Functor m => MultiReaderT '[] m a -> m ()
+runMultiReaderTNil  k = evalStateT (runMultiReaderTRaw k) HNil
+runMultiReaderTNil_ k = void $ runStateT (runMultiReaderTRaw k) HNil
+
+withMultiReader  :: Monad m => r -> MultiReaderT (r ': rs) m a -> MultiReaderT rs m a
+withMultiReader_ :: (Functor m, Monad m) => r -> MultiReaderT (r ': rs) m a -> MultiReaderT rs m ()
+withMultiReader  x k = MultiReaderT $
+  get >>= lift . evalStateT (runMultiReaderTRaw k) . (x :+:)
+withMultiReader_ x k = void $ withMultiReader x k
+
+withMultiReaders  :: Monad m => HList r1 -> MultiReaderT (Append r1 r2) m a -> MultiReaderT r2 m a
+withMultiReaders_ :: (Functor m, Monad m) => HList r1 -> MultiReaderT (Append r1 r2) m a -> MultiReaderT r2 m ()
+withMultiReaders  HNil       = id
+withMultiReaders  (x :+: xs) = withMultiReaders xs . withMultiReader x
+withMultiReaders_ HNil       = liftM (const ())
+withMultiReaders_ (x :+: xs) = withMultiReaders_ xs . withMultiReader_ x
 
 -- foreign lifting instances
 

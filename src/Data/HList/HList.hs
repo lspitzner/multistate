@@ -2,6 +2,9 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 -- | A GADT HList implementation
 --
@@ -10,6 +13,8 @@
 module Data.HList.HList
   ( HList(..)
   , Append
+  , hAppend
+  , HInit(..)
 ) where
 
 
@@ -17,6 +22,8 @@ module Data.HList.HList
 import Prelude hiding (reverse)
 
 import Data.Monoid
+
+import Data.Proxy
 
 
 
@@ -58,3 +65,21 @@ instance (Eq x, Eq (HList xs))
 type family Append (l1::[*]) (l2::[*]) :: [*]
 type instance Append '[] l2 = l2
 type instance Append (car1 ': cdr2) l2 = car1 ': Append cdr2 l2
+
+hAppend :: HList ts1 -> HList ts2 -> HList (Append ts1 ts2)
+hAppend HNil l = l
+hAppend (x:+:xs) l = x :+: hAppend xs l
+
+class HInit (l1 :: [*]) where
+  hInit :: forall l2 . Proxy l2 -> HList (Append l1 l2) -> HList l1
+  hSplit :: forall l2 . HList (Append l1 l2) -> (HList l1, HList l2)
+
+instance HInit '[] where
+  hInit _ _ = HNil
+  hSplit l = (HNil, l)
+instance HInit l1 => HInit (x ': l1) where
+  hInit p (x :+: xs)  = x :+: hInit p xs
+  hInit _ _           = error "cannot happen" -- see ghc trac #3927
+  hSplit (x :+: xs) = let (l1, l2) = hSplit xs
+                       in (x :+: l1, l2)
+  hSplit _          = error "cannot happen"

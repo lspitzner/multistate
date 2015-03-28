@@ -21,16 +21,16 @@ import Control.Applicative ( Applicative, (<$>), (<*>) )
 type Tests = [(Bool, String)]
 
 runEvalMS :: MS.MultiStateT '[] Identity a -> a
-runEvalMS = runIdentity . MS.evalMultiStateT
+runEvalMS = runIdentity . MS.runMultiStateTNil
 runEvalMR :: MR.MultiReaderT '[] Identity a -> a
-runEvalMR = runIdentity . MR.evalMultiReaderT
+runEvalMR = runIdentity . MR.runMultiReaderTNil
 runExecMW :: Monoid (HList x) => MW.MultiWriterT x Identity a -> HList x
-runExecMW = runIdentity . MW.execMultiWriterT
+runExecMW = runIdentity . MW.runMultiWriterTW
 
 runnerMS :: a -> MS.MultiStateT '[a] Identity a -> a
-runnerMS x m = runEvalMS $ MS.withMultiState x m
+runnerMS x m = runEvalMS $ MS.withStateA x m
 runnerMR :: a -> MR.MultiReaderT '[a] Identity a -> a
-runnerMR x m = runEvalMR $ MR.withMultiReader x m
+runnerMR x m = runEvalMR $ MR.withReader x m
 runnerMW :: Monoid a => MW.MultiWriterT '[a] Identity b -> a
 runnerMW m = case runExecMW m of (x :+: _) -> x
 -- TODO: ghc bug?: warning on:
@@ -38,12 +38,12 @@ runnerMW m = case runExecMW m of (x :+: _) -> x
 
 runnerMS_ :: a -> MS.MultiStateT '[a] Identity b -> a
 runnerMS_ x m = runIdentity
-              $ MS.evalMultiStateT
-              $ MS.withMultiState x (m >> MS.mGet)
+              $ MS.runMultiStateTNil
+              $ MS.withStateA x (m >> MS.mGet)
 runnerMR_ :: a -> MR.MultiReaderT '[a] Identity b -> a
 runnerMR_ x m = runIdentity
-              $ MR.evalMultiReaderT
-              $ MR.withMultiReader x (m >> MR.mAsk)
+              $ MR.runMultiReaderTNil
+              $ MR.withReader x (m >> MR.mAsk)
 
 intRunnerMS :: Int -> MS.MultiStateT '[Int] Identity Int -> Int
 intRunnerMS = runnerMS
@@ -78,30 +78,30 @@ testsMultiState =
     , "multistate setConfig"),
     (4 == intRunnerMS_ 4 (MS.mGet >>= \x -> MS.mSet (x::Int))
     , "multistate setConfig"),
-    (5 == intRunnerMS (4::Int) (MS.withMultiState (5::Int) MS.mGet)
+    (5 == intRunnerMS (4::Int) (MS.withStateA (5::Int) MS.mGet)
     , "multistate nesting"),
     (6 == intRunnerMS (4::Int) (   MS.mSet (100::Int)
-                                >> MS.withMultiState (6::Int) MS.mGet)
+                                >> MS.withStateA (6::Int) MS.mGet)
     , "multistate nesting"),
-    (7 == intRunnerMS (4::Int) (   MS.withMultiState (100::Int)
+    (7 == intRunnerMS (4::Int) (   MS.withStateA (100::Int)
                                      $ MS.mSet (7::Int)
                                 >> MS.mGet)
     , "multistate nesting"),
     ((True, 'a') == ( runEvalMS
-                    $ MS.withMultiState True
-                    $ MS.withMultiState 'a'
+                    $ MS.withStateA True
+                    $ MS.withStateA 'a'
                     $ msGetTuple )
     , "multistate multiple types"),
     ((True, 'b') == ( runEvalMS
-                    $ MS.withMultiState True
-                    $ MS.withMultiState 'a'
-                    $ MS.withMultiState 'b'
+                    $ MS.withStateA True
+                    $ MS.withStateA 'a'
+                    $ MS.withStateA 'b'
                     $ msGetTuple )
     , "multistate multiple types"),
     ((False, 'a') == ( runEvalMS
-                     $ MS.withMultiState True
-                     $ MS.withMultiState 'a'
-                     $ MS.withMultiState False
+                     $ MS.withStateA True
+                     $ MS.withStateA 'a'
+                     $ MS.withStateA False
                      $ msGetTuple )
     , "multistate multiple types"),
     (test13MS
@@ -115,23 +115,23 @@ testsMultiReader =
     , "identity"),
     (2 == intRunnerMR_ 2 (return ())
     , "multistate getConfig"),
-    (5 == intRunnerMR (4::Int) (MR.withMultiReader (5::Int) MR.mAsk)
+    (5 == intRunnerMR (4::Int) (MR.withReader (5::Int) MR.mAsk)
     , "multistate nesting"),
     ((True, 'a') == ( runEvalMR
-                    $ MR.withMultiReader True
-                    $ MR.withMultiReader 'a'
+                    $ MR.withReader True
+                    $ MR.withReader 'a'
                     $ mrAskTuple )
     , "multistate multiple types"),
     ((True, 'b') == ( runEvalMR
-                    $ MR.withMultiReader True
-                    $ MR.withMultiReader 'a'
-                    $ MR.withMultiReader 'b'
+                    $ MR.withReader True
+                    $ MR.withReader 'a'
+                    $ MR.withReader 'b'
                     $ mrAskTuple )
     , "multistate multiple types"),
     ((False, 'a') == ( runEvalMR
-                     $ MR.withMultiReader True
-                     $ MR.withMultiReader 'a'
-                     $ MR.withMultiReader False
+                     $ MR.withReader True
+                     $ MR.withReader 'a'
+                     $ MR.withReader False
                      $ mrAskTuple )
     , "multistate multiple types"),
     (test13MR
@@ -156,28 +156,28 @@ tests = testsMultiState ++ testsMultiReader ++ testsMultiWriter
 
 test13MR :: Bool
 test13MR = runIdentity
-         $ MR.evalMultiReaderT
-         $ MR.withMultiReader True
-         $ MR.withMultiReader 'a'
+         $ MR.runMultiReaderTNil
+         $ MR.withReader True
+         $ MR.withReader 'a'
          $ do
-  c <- MR.mAskRaw
+  c <- MR.mGetRaw
   return $ runIdentity
-         $ MR.evalMultiReaderT
-         $ MR.withMultiReaders c
+         $ MR.runMultiReaderTNil
+         $ MR.withReaders c
          $ do
     b <- MR.mAsk
     return (b::Bool)
 
 test13MS :: Bool
 test13MS = runIdentity
-         $ MS.evalMultiStateT
-         $ MS.withMultiState True
-         $ MS.withMultiState 'a'
+         $ MS.runMultiStateTNil
+         $ MS.withStateA True
+         $ MS.withStateA 'a'
          $ do
   c <- MS.mGetRaw
   return $ runIdentity
-         $ MS.evalMultiStateT
-         $ MS.withMultiStates c
+         $ MS.runMultiStateTNil
+         $ MS.withStatesA c
          $ do
     b <- MS.mGet
     return (b::Bool)
@@ -194,7 +194,7 @@ main = do
 
 main = do
   evalStateT
-    (evalMultiReaderT $ withConfig 'a' $ do
+    (runMultiReaderT $ withConfig 'a' $ do
         x <- withConfig 'b' getConfig
         lift $ lift $ print (x::Char)
         y <- get
@@ -202,7 +202,7 @@ main = do
         return ()
     )
     (1::Int)
-  evalMultiReaderT $ withConfig 'a' $ evalStateT
+  runMultiReaderT $ withConfig 'a' $ evalStateT
     ( do
         x <- getConfig
         lift $ lift $ print (x::Char)

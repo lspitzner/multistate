@@ -8,13 +8,33 @@ module Control.Monad.MultiState {-# DEPRECATED "Use Control.Monad.Trans.MultiSta
   , MultiState
   -- * MonadMultiState class
   , MonadMultiState(..)
-  -- * functions
-  , mGetRaw
+  -- * run-functions
+  , runMultiStateT
+  , runMultiStateTAS
+  , runMultiStateTSA
+  , runMultiStateTA
+  , runMultiStateTS
+  , runMultiStateT_
+  , runMultiStateTNil
+  , runMultiStateTNil_
+  -- * with-functions (single state)
   , withMultiState
+  , withMultiStateAS
+  , withMultiStateSA
+  , withMultiStateA
+  , withMultiStateS
+  , withMultiState_
+  -- * with-functions (multiple states)
   , withMultiStates
-  , evalMultiStateT
-  , evalMultiStateTWithInitial
+  , withMultiStatesAS
+  , withMultiStatesSA
+  , withMultiStatesA
+  , withMultiStatesS
+  , withMultiStates_
+  -- * other functions
   , mapMultiStateT
+  , mGetRaw
+  , mPutRaw
 ) where
 
 
