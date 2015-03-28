@@ -31,10 +31,6 @@ source-repository head
   type: git
   location: git@github.com:lspitzner/multistate.git
 
-flag build-test
-  description: Build the MultiState-test test program
-  default: False
-
 flag build-example
   description: Build the MultiState-example example program
   default: False
@@ -80,23 +76,20 @@ library {
   hs-source-dirs: src
 }
 
-executable multistate-test {
-  default-language:
-    Haskell2010
-  if flag(build-test) {
-    buildable: True
-    build-depends:
-      -- no version constraints necessary, because they are already
-      -- given by library
-      multistate,
-      base,
-      transformers
-  } else {
-    buildable: False
-  }
-  ghc-options: -Wall
-  main-is: Test.hs
-  hs-source-dirs: test
+test-suite multistate-test {
+  type:             exitcode-stdio-1.0
+  default-language: Haskell2010
+  buildable:        True
+  build-depends:
+    -- no version constraints necessary, because they are already
+    -- given by library
+    multistate,
+    base,
+    transformers,
+    hspec
+  ghc-options:      -Wall
+  main-is:          Test.hs
+  hs-source-dirs:   test
 }
 
 executable multistate-example {

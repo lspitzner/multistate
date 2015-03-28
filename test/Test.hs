@@ -16,6 +16,8 @@ import qualified Control.Monad.Trans.MultiWriter as MW
 
 import Control.Applicative ( Applicative, (<$>), (<*>) )
 
+import Test.Hspec
+
 
 
 type Tests = [(Bool, String)]
@@ -28,9 +30,9 @@ runExecMW :: Monoid (HList x) => MW.MultiWriterT x Identity a -> HList x
 runExecMW = runIdentity . MW.runMultiWriterTW
 
 runnerMS :: a -> MS.MultiStateT '[a] Identity a -> a
-runnerMS x m = runEvalMS $ MS.withStateA x m
+runnerMS x m = runEvalMS $ MS.withMultiStateA x m
 runnerMR :: a -> MR.MultiReaderT '[a] Identity a -> a
-runnerMR x m = runEvalMR $ MR.withReader x m
+runnerMR x m = runEvalMR $ MR.withMultiReader x m
 runnerMW :: Monoid a => MW.MultiWriterT '[a] Identity b -> a
 runnerMW m = case runExecMW m of (x :+: _) -> x
 -- TODO: ghc bug?: warning on:
@@ -39,11 +41,11 @@ runnerMW m = case runExecMW m of (x :+: _) -> x
 runnerMS_ :: a -> MS.MultiStateT '[a] Identity b -> a
 runnerMS_ x m = runIdentity
               $ MS.runMultiStateTNil
-              $ MS.withStateA x (m >> MS.mGet)
+              $ MS.withMultiStateA x (m >> MS.mGet)
 runnerMR_ :: a -> MR.MultiReaderT '[a] Identity b -> a
 runnerMR_ x m = runIdentity
               $ MR.runMultiReaderTNil
-              $ MR.withReader x (m >> MR.mAsk)
+              $ MR.withMultiReader x (m >> MR.mAsk)
 
 intRunnerMS :: Int -> MS.MultiStateT '[Int] Identity Int -> Int
 intRunnerMS = runnerMS
@@ -67,103 +69,108 @@ msGetTuple :: ( Applicative m
            => m (a,b)
 msGetTuple = (,) <$> MS.mGet <*> MS.mGet
 
-testsMultiState :: Tests
-testsMultiState =
-  [
-    (1 == runIdentity (Identity (1::Int))
-    , "identity"),
-    (2 == intRunnerMS_ 2 (return ())
-    , "multistate getConfig"),
-    (3 == intRunnerMS_ 100 (MS.mSet (3::Int))
-    , "multistate setConfig"),
-    (4 == intRunnerMS_ 4 (MS.mGet >>= \x -> MS.mSet (x::Int))
-    , "multistate setConfig"),
-    (5 == intRunnerMS (4::Int) (MS.withStateA (5::Int) MS.mGet)
-    , "multistate nesting"),
-    (6 == intRunnerMS (4::Int) (   MS.mSet (100::Int)
-                                >> MS.withStateA (6::Int) MS.mGet)
-    , "multistate nesting"),
-    (7 == intRunnerMS (4::Int) (   MS.withStateA (100::Int)
-                                     $ MS.mSet (7::Int)
-                                >> MS.mGet)
-    , "multistate nesting"),
-    ((True, 'a') == ( runEvalMS
-                    $ MS.withStateA True
-                    $ MS.withStateA 'a'
-                    $ msGetTuple )
-    , "multistate multiple types"),
-    ((True, 'b') == ( runEvalMS
-                    $ MS.withStateA True
-                    $ MS.withStateA 'a'
-                    $ MS.withStateA 'b'
-                    $ msGetTuple )
-    , "multistate multiple types"),
-    ((False, 'a') == ( runEvalMS
-                     $ MS.withStateA True
-                     $ MS.withStateA 'a'
-                     $ MS.withStateA False
-                     $ msGetTuple )
-    , "multistate multiple types"),
-    (test13MS
-    , "askRaw")
-  ]
+testsMultiState :: Spec
+testsMultiState = do
+  it "identity" $ 1 `shouldBe` runIdentity (Identity (1::Int))
+  it "getConfig"
+    $ intRunnerMS_ 2 (return ())
+    `shouldBe` 2
+  it "setConfig"
+    $ intRunnerMS_ 100 (MS.mSet (3::Int))
+    `shouldBe` 3
+  it "setConfig"
+    $ intRunnerMS_ 4 (MS.mGet >>= \x -> MS.mSet (x::Int))
+    `shouldBe` 4
+  it "nesting 1"
+    $ intRunnerMS (4::Int) (MS.withMultiStateA (5::Int) MS.mGet)
+    `shouldBe` 5
+  it "nesting 2"
+    $ intRunnerMS (4::Int) (   MS.mSet (100::Int)
+                                >> MS.withMultiStateA (6::Int) MS.mGet)
+    `shouldBe` 6
+  it "nesting 3"
+    $ intRunnerMS (4::Int) (MS.withMultiStateA (100::Int)
+                                        $ MS.mSet (7::Int) >> MS.mGet)
+    `shouldBe` 7
+  it "multiple types 1"
+    $ ( runEvalMS
+      $ MS.withMultiStateA True
+      $ MS.withMultiStateA 'a'
+      $ msGetTuple )
+    `shouldBe` (True, 'a')
+  it "multiple types 2"
+    $ ( runEvalMS
+      $ MS.withMultiStateA True
+      $ MS.withMultiStateA 'a'
+      $ MS.withMultiStateA 'b'
+      $ msGetTuple )
+    `shouldBe` (True, 'b')
+  it "askRaw" test13MS
 
-testsMultiReader :: Tests
-testsMultiReader =
-  [
-    (1 == runIdentity (Identity (1::Int))
-    , "identity"),
-    (2 == intRunnerMR_ 2 (return ())
-    , "multistate getConfig"),
-    (5 == intRunnerMR (4::Int) (MR.withReader (5::Int) MR.mAsk)
-    , "multistate nesting"),
-    ((True, 'a') == ( runEvalMR
-                    $ MR.withReader True
-                    $ MR.withReader 'a'
-                    $ mrAskTuple )
-    , "multistate multiple types"),
-    ((True, 'b') == ( runEvalMR
-                    $ MR.withReader True
-                    $ MR.withReader 'a'
-                    $ MR.withReader 'b'
-                    $ mrAskTuple )
-    , "multistate multiple types"),
-    ((False, 'a') == ( runEvalMR
-                     $ MR.withReader True
-                     $ MR.withReader 'a'
-                     $ MR.withReader False
-                     $ mrAskTuple )
-    , "multistate multiple types"),
-    (test13MR
-    , "getRaw")
-  ]
+testsMultiReader :: Spec
+testsMultiReader = do
+  it "identity"
+    $ runIdentity (Identity (1::Int))
+    `shouldBe` 1
+  it "getConfig"
+    $ intRunnerMR_ 2 (return ())
+    `shouldBe` 2
+  it "nesting"
+    $ intRunnerMR (4::Int) (MR.withMultiReader (5::Int) MR.mAsk)
+    `shouldBe` 5
+  it "multiple types 1"
+    $ ( runEvalMR
+      $ MR.withMultiReader True
+      $ MR.withMultiReader 'a'
+      $ mrAskTuple )
+    `shouldBe` (True, 'a')
+  it "multiple types 2"
+    $ ( runEvalMR
+      $ MR.withMultiReader True
+      $ MR.withMultiReader 'a'
+      $ MR.withMultiReader 'b'
+      $ mrAskTuple )
+    `shouldBe` (True, 'b')
+  it "multiple types 3"
+    $ ( runEvalMR
+      $ MR.withMultiReader True
+      $ MR.withMultiReader 'a'
+      $ MR.withMultiReader False
+      $ mrAskTuple )
+    `shouldBe` (False, 'a')
+  it "getRaw" test13MR
 
-testsMultiWriter :: Tests
-testsMultiWriter =
-  [ ("" == stringRunnerMW (return ())
-    , "multiwriter 1-0")
-  , ("a" == stringRunnerMW (MW.mTell "a") -- this type annotation is kinda
-                                            -- annoying..
-    , "multiwriter 1-1")
-  , ("ab" == stringRunnerMW (MW.mTell "a" >> MW.mTell "b")
-    , "multiwriter 1-2")
-  , (("ab" :+: [True] :+: HNil) == runExecMW (MW.mTell "a" >> MW.mTell [True] >> MW.mTell "b")
-    , "multiwriter 2")
-  ]
+testsMultiWriter :: Spec
+testsMultiWriter = do
+  it "1-0"
+    $ stringRunnerMW (return ())
+    `shouldBe` ""
+  it "1-1"
+    $ stringRunnerMW (MW.mTell "a")
+    `shouldBe` "a"
+  it "1-2"
+    $ stringRunnerMW (MW.mTell "a" >> MW.mTell "b")
+    `shouldBe` "ab"
+  it "2"
+    $ runExecMW (MW.mTell "a" >> MW.mTell [True] >> MW.mTell "b")
+    `shouldBe` ("ab" :+: [True] :+: HNil)
 
-tests :: Tests
-tests = testsMultiState ++ testsMultiReader ++ testsMultiWriter
+tests :: Spec
+tests = do
+  describe "MultiState" $ testsMultiState
+  describe "MultiReader" $ testsMultiReader
+  describe "MultiWriter" $ testsMultiWriter
 
 test13MR :: Bool
 test13MR = runIdentity
          $ MR.runMultiReaderTNil
-         $ MR.withReader True
-         $ MR.withReader 'a'
+         $ MR.withMultiReader True
+         $ MR.withMultiReader 'a'
          $ do
   c <- MR.mGetRaw
   return $ runIdentity
          $ MR.runMultiReaderTNil
-         $ MR.withReaders c
+         $ MR.withMultiReaders c
          $ do
     b <- MR.mAsk
     return (b::Bool)
@@ -171,24 +178,24 @@ test13MR = runIdentity
 test13MS :: Bool
 test13MS = runIdentity
          $ MS.runMultiStateTNil
-         $ MS.withStateA True
-         $ MS.withStateA 'a'
+         $ MS.withMultiStateA True
+         $ MS.withMultiStateA 'a'
          $ do
   c <- MS.mGetRaw
   return $ runIdentity
          $ MS.runMultiStateTNil
-         $ MS.withStatesA c
+         $ MS.withMultiStatesA c
          $ do
     b <- MS.mGet
     return (b::Bool)
 
 main :: IO ()
-main = do
-  mapM_ (putStrLn . ("error: "++) . snd) $ filter (\(b, _) -> not b) tests
-  putStrLn $    "ran "
-             ++ show (length tests)
-             ++ " tests (no further output = good)"
-  return ()
+main = hspec $ tests
+  -- mapM_ (putStrLn . ("error: "++) . snd) $ filter (\(b, _) -> not b) tests
+  -- putStrLn $    "ran "
+  --            ++ show (length tests)
+  --            ++ " tests (no further output = good)"
+  -- return ()
 
 {-
 
