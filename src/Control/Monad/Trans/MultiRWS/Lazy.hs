@@ -1,0 +1,321 @@
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+
+module Control.Monad.Trans.MultiRWS.Lazy
+  (
+    MultiRWST(..)
+  , MultiRWSTNull
+  , MultiRWS
+  , runMultiRWST
+  , runMultiRWSTASW
+  , runMultiRWSTW
+  , runMultiRWSTAW
+  , runMultiRWSTSW
+  , runMultiRWSTNil
+  , runMultiRWSTNil_
+  , withMultiReader
+  , withMultiReader_
+  , withMultiReaders
+  , withMultiReaders_
+  , withMultiWriter
+  , withMultiWriterAW
+  , withMultiWriterWA
+  , withMultiWriterW
+  , withMultiWriters
+  , withMultiWritersAW
+  , withMultiWritersWA
+  , withMultiWritersW
+  , withMultiState
+  , withMultiStateAS
+  , withMultiStateSA
+  , withMultiStateA
+  , withMultiStateS
+  , withMultiState_
+  , withMultiStates
+  , withMultiStatesAS
+  , withMultiStatesSA
+  , withMultiStatesA
+  , withMultiStatesS
+  , withMultiStates_
+  , mapMultiRWST
+  )
+where
+
+
+
+import Data.HList.HList
+import Data.HList.ContainsType
+
+import Control.Monad.Trans.MultiReader.Class ( MonadMultiReader(..) )
+import Control.Monad.Trans.MultiWriter.Class ( MonadMultiWriter(..) )
+import Control.Monad.Trans.MultiState.Class  ( MonadMultiState(..) )
+
+import Control.Monad.State.Lazy   ( StateT(..)
+                                  , MonadState(..)
+                                  , execStateT
+                                  , evalStateT
+                                  , mapStateT )
+import Control.Monad.Trans.Class  ( MonadTrans
+                                  , lift )
+
+import Data.Functor.Identity      ( Identity )
+
+import Control.Applicative        ( Applicative(..) )
+import Control.Monad              ( liftM
+                                  , ap
+                                  , void )
+
+import Data.Monoid
+
+
+
+newtype MultiRWST r w s m a = MultiRWST {
+  runMultiRWSTRaw :: StateT (HList r, HList w, HList s) m a
+}
+
+type MultiRWSTNull = MultiRWST '[] '[] '[]
+
+type MultiRWS r w s = MultiRWST r w s Identity
+
+instance (Functor f) => Functor (MultiRWST r w s f) where
+  fmap f = MultiRWST . fmap f . runMultiRWSTRaw
+
+instance (Applicative m, Monad m) => Applicative (MultiRWST r w s m) where
+  pure = MultiRWST . pure
+  (<*>) = ap
+
+instance (Monad m) => Monad (MultiRWST r w s m) where
+  return = MultiRWST . return
+  k >>= f = MultiRWST $ runMultiRWSTRaw k >>= runMultiRWSTRaw . f
+
+instance MonadTrans (MultiRWST r w s) where
+  lift = MultiRWST . lift
+
+instance (Monad m, ContainsType a r)
+      => MonadMultiReader a (MultiRWST r w s m) where
+  mAsk = MultiRWST $ liftM (\(r,_,_) -> getHListElem r) get
+
+instance (Monad m, ContainsType a w, Monoid a)
+      => MonadMultiWriter a (MultiRWST r w s m) where
+  mTell v = MultiRWST $ do
+    ~(r,w,s) <- get
+    put $ (r, setHListElem (getHListElem w `mappend` v) w, s)
+
+instance (Monad m, ContainsType a s)
+      => MonadMultiState a (MultiRWST r w s m) where
+  mSet v = MultiRWST $ do
+    ~(r,w,s) <- get
+    put (r, w, setHListElem v s)
+  mGet = MultiRWST $ do
+    ~(_,_,s) <- get
+    return $ getHListElem s
+
+-- methods
+
+runMultiRWST    :: ( Monad m
+                   , Monoid (HList w)
+                   )
+                => HList r
+                -> HList s
+                -> MultiRWST r w s m a
+                -> m (a, HList s, HList w)
+runMultiRWSTASW :: ( Monad m
+                   , Monoid (HList w)
+                   )
+                => HList r
+                -> HList s
+                -> MultiRWST r w s m a
+                -> m (a, HList s, HList w)
+runMultiRWSTW   :: ( Monad m
+                   , Monoid (HList w)
+                   )
+                => HList r
+                -> HList s
+                -> MultiRWST r w s m a
+                -> m (HList w)
+runMultiRWSTAW  :: ( Monad m
+                    , Monoid (HList w)
+                    )
+                 => HList r
+                 -> HList s
+                 -> MultiRWST r w s m a
+                 -> m (a, HList w)
+runMultiRWSTSW  :: ( Monad m
+                    , Monoid (HList w)
+                    )
+                 => HList r
+                 -> HList s
+                 -> MultiRWST r w s m a
+                 -> m (HList s, HList w)
+
+runMultiRWSTNil :: ( Monad m )
+                => MultiRWST '[] '[] '[] m a
+                -> m a
+runMultiRWSTNil_ :: ( Monad m, Functor m )
+                 => MultiRWST '[] '[] '[] m a
+                 -> m ()
+runMultiRWST = runMultiRWSTASW
+runMultiRWSTASW r s k = do
+  ~(x, ~(_, w, s')) <- runStateT (runMultiRWSTRaw k) (r, mempty, s)
+  return $ (x, s', w)
+runMultiRWSTW r s k = do
+  ~(_, w, _) <- execStateT (runMultiRWSTRaw k) (r, mempty, s)
+  return $ w
+runMultiRWSTAW r s k = do
+  ~(x, ~(_, w, _)) <- runStateT (runMultiRWSTRaw k) (r, mempty, s)
+  return $ (x, w)
+runMultiRWSTSW r s k = do
+  ~(_, w, s') <- execStateT (runMultiRWSTRaw k) (r, mempty, s)
+  return $ (s', w)
+runMultiRWSTNil  k = evalStateT (runMultiRWSTRaw k) (HNil, HNil, HNil)
+runMultiRWSTNil_ k = void $ runStateT (runMultiRWSTRaw k) (HNil, HNil, HNil)
+
+withMultiReader  :: Monad m => r -> MultiRWST (r ': rs) w s m a -> MultiRWST rs w s m a
+withMultiReader_ :: (Functor m, Monad m) => r -> MultiRWST (r ': rs) w s m a -> MultiRWST rs w s m ()
+withMultiReaders  :: Monad m => HList r1 -> MultiRWST (Append r1 r2) w s m a -> MultiRWST r2 w s m a
+withMultiReaders_ :: (Functor m, Monad m) => HList r1 -> MultiRWST (Append r1 r2) w s m a -> MultiRWST r2 w s m ()
+withMultiReader x k = MultiRWST $ do
+  (r, w, s) <- get
+  ~(a, ~(_, w', s')) <- lift $ runStateT (runMultiRWSTRaw k) (x :+: r, w, s)
+  put (r, w', s')
+  return a
+withMultiReader_ x k = MultiRWST $ do
+  (r, w, s) <- get
+  ~(_, w', s') <- lift $ execStateT (runMultiRWSTRaw k) (x :+: r, w, s)
+  put (r, w', s')
+withMultiReaders HNil       = id
+withMultiReaders (x :+: xs) = withMultiReaders xs . withMultiReader x
+withMultiReaders_ HNil       = void
+withMultiReaders_ (x :+: xs) = withMultiReaders_ xs . withMultiReader x
+
+withMultiWriter   :: (Monoid w, Monad m) => MultiRWST r (w ': ws) s m a -> MultiRWST r ws s m (a, w)
+withMultiWriterAW :: (Monoid w, Monad m) => MultiRWST r (w ': ws) s m a -> MultiRWST r ws s m (a, w)
+withMultiWriterWA :: (Monoid w, Monad m) => MultiRWST r (w ': ws) s m a -> MultiRWST r ws s m (w, a)
+withMultiWriterW  :: (Monoid w, Monad m) => MultiRWST r (w ': ws) s m a -> MultiRWST r ws s m w
+withMultiWriters   :: forall r w1 w2 s m a
+                    . (Monoid (HList w1), Monad m, HInit w1)
+                   => MultiRWST r (Append w1 w2) s m a
+                   -> MultiRWST r w2 s m (a, HList w1)
+withMultiWritersAW :: forall r w1 w2 s m a
+                    . (Monoid (HList w1), Monad m, HInit w1)
+                   => MultiRWST r (Append w1 w2) s m a
+                   -> MultiRWST r w2 s m (a, HList w1)
+withMultiWritersWA :: forall r w1 w2 s m a
+                    . (Monoid (HList w1), Monad m, HInit w1)
+                   => MultiRWST r (Append w1 w2) s m a
+                   -> MultiRWST r w2 s m (HList w1, a)
+withMultiWritersW  :: forall r w1 w2 s m a
+                    . (Monoid (HList w1), Monad m, HInit w1)
+                   => MultiRWST r (Append w1 w2) s m a
+                   -> MultiRWST r w2 s m (HList w1)
+withMultiWriter = withMultiWriterAW
+withMultiWriterAW k = MultiRWST $ do
+  (r, w, s) <- get
+  ~(a, ~(_, w', s')) <- lift $ runStateT (runMultiRWSTRaw k) (r, mempty :+: w, s)
+  case w' of
+    x' :+: wr' -> do
+      put (r, wr', s')
+      return (a, x')
+withMultiWriterWA k = MultiRWST $ do
+  (r, w, s) <- get
+  ~(a, ~(_, w', s')) <- lift $ runStateT (runMultiRWSTRaw k) (r, mempty :+: w, s)
+  case w' of
+    x' :+: wr' -> do
+      put (r, wr', s')
+      return (x', a)
+withMultiWriterW k = MultiRWST $ do
+  (r, w, s) <- get
+  ~(_, w', s') <- lift $ execStateT (runMultiRWSTRaw k) (r, mempty :+: w, s)
+  case w' of
+    x' :+: wr' -> do
+      put (r, wr', s')
+      return x'
+withMultiWriters = withMultiWritersAW
+withMultiWritersAW k = MultiRWST $ do
+  (r, w, s) <- get
+  ~(a, ~(_, w', s')) <- lift $ runStateT (runMultiRWSTRaw k) (r, hAppend (mempty :: HList w1) w, s)
+  let (o, wr') = hSplit w'
+  put (r, wr', s')
+  return (a, o)
+withMultiWritersWA k = MultiRWST $ do
+  (r, w, s) <- get
+  ~(a, ~(_, w', s')) <- lift $ runStateT (runMultiRWSTRaw k) (r, hAppend (mempty :: HList w1) w, s)
+  let (o, wr') = hSplit w'
+  put (r, wr', s')
+  return (o, a)
+withMultiWritersW k = MultiRWST $ do
+  (r, w, s) <- get
+  ~(_, w', s') <- lift $ execStateT (runMultiRWSTRaw k) (r, hAppend (mempty :: HList w1) w, s)
+  let (o, wr') = hSplit w'
+  put (r, wr', s')
+  return o
+
+withMultiState   :: Monad m => s -> MultiRWST r w (s ': ss) m a -> MultiRWST r w ss m (a, s)
+withMultiStateAS :: Monad m => s -> MultiRWST r w (s ': ss) m a -> MultiRWST r w ss m (a, s)
+withMultiStateSA :: Monad m => s -> MultiRWST r w (s ': ss) m a -> MultiRWST r w ss m (s, a)
+withMultiStateA  :: Monad m => s -> MultiRWST r w (s ': ss) m a -> MultiRWST r w ss m a
+withMultiStateS  :: Monad m => s -> MultiRWST r w (s ': ss) m a -> MultiRWST r w ss m s
+withMultiState_  :: (Functor m, Monad m) => s -> MultiRWST r w (s ': ss) m a -> MultiRWST r w ss m ()
+withMultiStates   :: Monad m => HList s1 -> MultiRWST r w (Append s1 s2) m a -> MultiRWST r w s2 m (a, HList s1)
+withMultiStatesAS :: Monad m => HList s1 -> MultiRWST r w (Append s1 s2) m a -> MultiRWST r w s2 m (a, HList s1)
+withMultiStatesSA :: Monad m => HList s1 -> MultiRWST r w (Append s1 s2) m a -> MultiRWST r w s2 m (HList s1, a)
+withMultiStatesA  :: Monad m => HList s1 -> MultiRWST r w (Append s1 s2) m a -> MultiRWST r w s2 m a
+withMultiStatesS  :: Monad m => HList s1 -> MultiRWST r w (Append s1 s2) m a -> MultiRWST r w s2 m (HList s1)
+withMultiStates_  :: (Functor m, Monad m) => HList s1 -> MultiRWST r w (Append s1 s2) m a -> MultiRWST r w s2 m ()
+withMultiState = withMultiStateAS
+withMultiStateAS x k = MultiRWST $ do
+  ~(r, w, s) <- get
+  ~(a, ~(_, w', s')) <- lift $ runStateT (runMultiRWSTRaw k) (r, w, (x :+: s))
+  case s' of
+    x' :+: sr' -> do
+      put (r, w', sr')
+      return (a, x')
+withMultiStateSA x k = MultiRWST $ do
+  ~(r, w, s) <- get
+  ~(a, ~(_, w', s')) <- lift $ runStateT (runMultiRWSTRaw k) (r, w, (x :+: s))
+  case s' of
+    x' :+: sr' -> do
+      put (r, w', sr')
+      return (x', a)
+withMultiStateA x k = MultiRWST $ do
+  ~(r, w, s) <- get
+  ~(a, ~(_, w', s')) <- lift $ runStateT (runMultiRWSTRaw k) (r, w, (x :+: s))
+  case s' of
+    _ :+: sr' -> do
+      put (r, w', sr')
+      return a
+withMultiStateS x k = MultiRWST $ do
+  ~(r, w, s) <- get
+  ~(_, w', s') <- lift $ execStateT (runMultiRWSTRaw k) (r, w, (x :+: s))
+  case s' of
+    x' :+: sr' -> do
+      put (r, w', sr')
+      return x'
+withMultiState_ x k = MultiRWST $ do
+  ~(r, w, s) <- get
+  ~(_, w', s') <- lift $ execStateT (runMultiRWSTRaw k) (r, w, (x :+: s))
+  case s' of _ :+: sr' -> put (r, w', sr')
+withMultiStates                = withMultiStatesAS
+withMultiStatesAS HNil       k = do a <- k; return (a, HNil)
+withMultiStatesAS (x :+: xs) k = do
+  ~(~(a, x'), xs') <- withMultiStates xs $ withMultiState x k
+  return (a, x' :+: xs')
+withMultiStatesSA HNil       k = do a <- k; return (HNil, a)
+withMultiStatesSA (x :+: xs) k = do
+  ~(~(a, x'), xs') <- withMultiStates xs $ withMultiState x k
+  return (x' :+: xs', a)
+withMultiStatesA HNil       = id
+withMultiStatesA (x :+: xs) = withMultiStatesA xs . withMultiStateA x
+withMultiStatesS HNil       k = k >> return HNil
+withMultiStatesS (x :+: xs) k = do
+  ~(x', xs') <- withMultiStates xs $ withMultiStateS x k
+  return (x' :+: xs')
+withMultiStates_ HNil       = void
+withMultiStates_ (x :+: xs) = withMultiStates_ xs . withMultiState_ x
+
+mapMultiRWST :: (ss ~ (HList r, HList w, HList s))
+             => (m (a, ss) -> m' (a', ss))
+             -> MultiRWST r w s m a
+             -> MultiRWST r w s m' a'
+mapMultiRWST f = MultiRWST . mapStateT f . runMultiRWSTRaw
