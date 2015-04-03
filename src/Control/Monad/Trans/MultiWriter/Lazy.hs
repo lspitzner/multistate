@@ -26,6 +26,8 @@ module Control.Monad.Trans.MultiWriter.Lazy
   , withMultiWritersAW
   , withMultiWritersWA
   , withMultiWritersW
+  -- * inflate-function (run WriterT in MultiWriterT)
+  , inflateWriter
   -- * other functions
   , mapMultiWriterT
   , mGetRaw
@@ -45,6 +47,7 @@ import Control.Monad.State.Lazy   ( StateT(..)
                                   , execStateT
                                   , evalStateT
                                   , mapStateT )
+import Control.Monad.Writer.Lazy  ( WriterT(..) ) 
 import Control.Monad.Trans.Class  ( MonadTrans
                                   , lift )
 import Control.Monad.Writer.Class ( MonadWriter
@@ -192,6 +195,14 @@ withMultiWritersW k  = MultiWriterT $ do
   let (o, w') = hSplit ws'
   put w'
   return $ o
+
+inflateWriter :: (Monad m, Monoid w, ContainsType w ws)
+              => WriterT w m a
+              -> MultiWriterT ws m a
+inflateWriter k = do
+  (x, w) <- lift $ runWriterT k
+  mTell w
+  return x
 
 -- foreign lifting instances
 

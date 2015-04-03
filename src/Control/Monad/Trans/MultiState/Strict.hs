@@ -30,6 +30,10 @@ module Control.Monad.Trans.MultiState.Strict
   , withMultiStatesA
   , withMultiStatesS
   , withMultiStates_
+  -- * inflate-functions (run single state in multiple states)
+  , inflateState
+  , inflateReader
+  , inflateWriter
   -- * other functions
   , mapMultiStateT
   , mGetRaw
@@ -43,25 +47,28 @@ import Data.HList.ContainsType
 
 import Control.Monad.Trans.MultiState.Class
 
-import Control.Monad.State.Strict ( StateT(..)
-                                  , MonadState(..)
-                                  , evalStateT
-                                  , execStateT
-                                  , mapStateT )
-import Control.Monad.Trans.Class  ( MonadTrans
-                                  , lift )
-import Control.Monad.Writer.Class ( MonadWriter
-                                  , listen
-                                  , tell
-                                  , writer
-                                  , pass )
+import Control.Monad.State.Strict  ( StateT(..)
+                                   , MonadState(..)
+                                   , evalStateT
+                                   , execStateT
+                                   , mapStateT )
+import Control.Monad.Reader        ( ReaderT(..) )
+import Control.Monad.Writer.Strict ( WriterT(..) )
+import Control.Monad.Trans.Class   ( MonadTrans
+                                   , lift )
+import Control.Monad.Writer.Class  ( MonadWriter
+                                   , listen
+                                   , tell
+                                   , writer
+                                   , pass )
 
-import Data.Functor.Identity      ( Identity )
+import Data.Functor.Identity       ( Identity )
 
-import Control.Applicative        ( Applicative(..) )
-import Control.Monad              ( liftM
-                                  , ap
-                                  , void )
+import Control.Applicative         ( Applicative(..) )
+import Control.Monad               ( liftM
+                                   , ap
+                                   , void )
+import Data.Monoid                 ( Monoid )
 
 
 
@@ -195,6 +202,28 @@ withMultiStatesS (x :+: xs)  = liftM (\(x', xs') -> x' :+: xs')
                         . withMultiStateS x
 withMultiStates_  HNil       = liftM (const ())
 withMultiStates_ (x :+: xs)  = withMultiStates_ xs . withMultiState_ x
+
+inflateState :: (Monad m, ContainsType s ss)
+             => StateT s m a
+             -> MultiStateT ss m a
+inflateState k = do
+  s <- mGet
+  (x, s') <- lift $ runStateT k s
+  mSet s'
+  return x
+
+inflateReader :: (Monad m, ContainsType r ss)
+              => ReaderT r m a
+              -> MultiStateT ss m a
+inflateReader k = mGet >>= lift . runReaderT k
+
+inflateWriter :: (Monad m, ContainsType w ss, Monoid w)
+              => WriterT w m a
+              -> MultiStateT ss m a
+inflateWriter k = do
+  (x, w) <- lift $ runWriterT k
+  mSet w
+  return x
 
 -- foreign lifting instances
 

@@ -26,6 +26,8 @@ module Control.Monad.Trans.MultiWriter.Strict
   , withMultiWritersAW
   , withMultiWritersWA
   , withMultiWritersW
+  -- * inflate-function (run WriterT in MultiWriterT)
+  , inflateWriter
   -- * other functions
   , mapMultiWriterT
   , mGetRaw
@@ -40,25 +42,26 @@ import Data.HList.ContainsType
 
 import Control.Monad.Trans.MultiWriter.Class ( MonadMultiWriter(..) )
 
-import Control.Monad.State.Strict ( StateT(..)
-                                  , MonadState(..)
-                                  , execStateT
-                                  , evalStateT
-                                  , mapStateT )
-import Control.Monad.Trans.Class  ( MonadTrans
-                                  , lift )
-import Control.Monad.Writer.Class ( MonadWriter
-                                  , listen
-                                  , tell
-                                  , writer
-                                  , pass )
+import Control.Monad.State.Strict  ( StateT(..)
+                                   , MonadState(..)
+                                   , execStateT
+                                   , evalStateT
+                                   , mapStateT )
+import Control.Monad.Writer.Strict ( WriterT(..) )
+import Control.Monad.Trans.Class   ( MonadTrans
+                                   , lift )
+import Control.Monad.Writer.Class  ( MonadWriter
+                                   , listen
+                                   , tell
+                                   , writer
+                                   , pass )
 
-import Data.Functor.Identity      ( Identity )
+import Data.Functor.Identity       ( Identity )
 
-import Control.Applicative        ( Applicative(..) )
-import Control.Monad              ( liftM
-                                  , ap
-                                  , void )
+import Control.Applicative         ( Applicative(..) )
+import Control.Monad               ( liftM
+                                   , ap
+                                   , void )
 
 import Data.Monoid
 
@@ -192,6 +195,14 @@ withMultiWritersW k  = MultiWriterT $ do
   let (o, w') = hSplit ws'
   put w'
   return $ o
+
+inflateWriter :: (Monad m, Monoid w, ContainsType w ws)
+              => WriterT w m a
+              -> MultiWriterT ws m a
+inflateWriter k = do
+  (x, w) <- lift $ runWriterT k
+  mTell w
+  return x
 
 -- foreign lifting instances
 

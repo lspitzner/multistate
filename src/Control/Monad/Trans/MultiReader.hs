@@ -18,6 +18,8 @@ module Control.Monad.Trans.MultiReader
   -- * with-functions (multiple Readers)
   , withMultiReaders
   , withMultiReaders_
+  -- * inflate-function (run ReaderT in MultiReaderT)
+  , inflateReader
   -- * other functions
   , mapMultiReaderT
   , mGetRaw

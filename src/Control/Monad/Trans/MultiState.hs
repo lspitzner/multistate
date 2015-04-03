@@ -31,6 +31,10 @@ module Control.Monad.Trans.MultiState
   , withMultiStatesA
   , withMultiStatesS
   , withMultiStates_
+  -- * inflate-functions (run single state in multiple states)
+  , inflateState
+  , inflateReader
+  , inflateWriter
   -- * other functions
   , mapMultiStateT
   , mGetRaw

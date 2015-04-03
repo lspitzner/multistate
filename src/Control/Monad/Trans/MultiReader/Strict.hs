@@ -16,6 +16,8 @@ module Control.Monad.Trans.MultiReader.Strict
   -- * with-functions (multiple Readers)
   , withMultiReaders
   , withMultiReaders_
+  -- * inflate-function (run ReaderT in MultiReaderT)
+  , inflateReader
   -- * other functions
   , mapMultiReaderT
   , mGetRaw
@@ -33,6 +35,7 @@ import Control.Monad.State.Strict ( StateT(..)
                                   , MonadState(..)
                                   , evalStateT
                                   , mapStateT )
+import Control.Monad.Reader       ( ReaderT(..) )
 import Control.Monad.Trans.Class  ( MonadTrans
                                   , lift )
 import Control.Monad.Writer.Class ( MonadWriter
@@ -144,6 +147,11 @@ withMultiReaders  HNil       = id
 withMultiReaders  (x :+: xs) = withMultiReaders xs . withMultiReader x
 withMultiReaders_ HNil       = liftM (const ())
 withMultiReaders_ (x :+: xs) = withMultiReaders_ xs . withMultiReader_ x
+
+inflateReader :: (Monad m, ContainsType r rs)
+              => ReaderT r m a
+              -> MultiReaderT rs m a
+inflateReader k = mAsk >>= lift . runReaderT k
 
 -- foreign lifting instances
 

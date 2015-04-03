@@ -19,6 +19,8 @@ module Control.Monad.MultiReader {-# DEPRECATED "Use Control.Monad.Trans.MultiRe
   -- * with-functions (multiple Readers)
   , withMultiReaders
   , withMultiReaders_
+  -- * inflate-function (run ReaderT in MultiReaderT)
+  , inflateReader
   -- * other functions
   , mapMultiReaderT
   , mGetRaw

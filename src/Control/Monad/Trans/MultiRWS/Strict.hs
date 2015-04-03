@@ -38,7 +38,19 @@ module Control.Monad.Trans.MultiRWS.Strict
   , withMultiStatesA
   , withMultiStatesS
   , withMultiStates_
+  , inflateReader
+  , inflateMultiReader
+  , inflateWriter
+  , inflateMultiWriter
+  , inflateState
+  , inflateMultiState
   , mapMultiRWST
+  , mGetRawR
+  , mGetRawW
+  , mGetRawS
+  , mPutRawR
+  , mPutRawW
+  , mPutRawS
   )
 where
 
@@ -47,24 +59,32 @@ where
 import Data.HList.HList
 import Data.HList.ContainsType
 
-import Control.Monad.Trans.MultiReader.Class ( MonadMultiReader(..) )
-import Control.Monad.Trans.MultiWriter.Class ( MonadMultiWriter(..) )
-import Control.Monad.Trans.MultiState.Class  ( MonadMultiState(..) )
+import Control.Monad.Trans.MultiReader.Class  ( MonadMultiReader(..) )
+import Control.Monad.Trans.MultiWriter.Class  ( MonadMultiWriter(..) )
+import Control.Monad.Trans.MultiState.Class   ( MonadMultiState(..) )
+import Control.Monad.Trans.MultiReader.Strict ( MultiReaderT(..)
+                                              , runMultiReaderT )
+import Control.Monad.Trans.MultiWriter.Strict ( MultiWriterT(..)
+                                              , runMultiWriterT )
+import Control.Monad.Trans.MultiState.Strict  ( MultiStateT(..)
+                                              , runMultiStateT )
 
-import Control.Monad.State.Strict ( StateT(..)
-                                  , MonadState(..)
-                                  , execStateT
-                                  , evalStateT
-                                  , mapStateT )
-import Control.Monad.Trans.Class  ( MonadTrans
-                                  , lift )
+import Control.Monad.State.Strict   ( StateT(..)
+                                    , MonadState(..)
+                                    , execStateT
+                                    , evalStateT
+                                    , mapStateT )
+import Control.Monad.Reader         ( ReaderT(..) )
+import Control.Monad.Writer.Strict  ( WriterT(..) )
+import Control.Monad.Trans.Class    ( MonadTrans
+                                    , lift )
 
-import Data.Functor.Identity      ( Identity )
+import Data.Functor.Identity        ( Identity )
 
-import Control.Applicative        ( Applicative(..) )
-import Control.Monad              ( liftM
-                                  , ap
-                                  , void )
+import Control.Applicative          ( Applicative(..) )
+import Control.Monad                ( liftM
+                                    , ap
+                                    , void )
 
 import Data.Monoid
 
@@ -313,6 +333,64 @@ withMultiStatesS (x :+: xs) k = do
   return (x' :+: xs')
 withMultiStates_ HNil       = void
 withMultiStates_ (x :+: xs) = withMultiStates_ xs . withMultiState_ x
+
+inflateReader :: (Monad m, ContainsType r rs)
+              => ReaderT r m a
+              -> MultiRWST rs w s m a
+inflateReader k = mAsk >>= lift . runReaderT k
+inflateMultiReader :: Monad m => MultiReaderT r m a -> MultiRWST r w s m a
+inflateMultiReader k = do
+  r <- mGetRawR
+  lift $ runMultiReaderT r k
+inflateWriter :: (Monad m, ContainsType w ws, Monoid w)
+              => WriterT w m a
+              -> MultiRWST r ws s m a
+inflateWriter k = do
+  (x, w) <- lift $ runWriterT k
+  mTell w
+  return x
+inflateMultiWriter :: (Functor m, Monad m, Monoid (HList w))
+                   => MultiWriterT w m a
+                   -> MultiRWST r w s m a
+inflateMultiWriter k = do
+  (x, w) <- lift $ runMultiWriterT k
+  mPutRawW w
+  return x
+inflateState :: (Monad m, ContainsType s ss)
+             => StateT s m a
+             -> MultiRWST r w ss m a
+inflateState k = do
+  s <- mGet
+  (x, s') <- lift $ runStateT k s
+  mSet s'
+  return x
+inflateMultiState :: (Functor m, Monad m)
+                  => MultiStateT s m a
+                  -> MultiRWST r w s m a
+inflateMultiState k = do
+  s <- mGetRawS
+  (x, s') <- lift $ runMultiStateT s k
+  mPutRawS s'
+  return x
+
+mGetRawR :: Monad m => MultiRWST r w s m (HList r)
+mPutRawR :: Monad m => HList r -> MultiRWST r w s m ()
+mGetRawW :: Monad m => MultiRWST r w s m (HList w)
+mPutRawW :: Monad m => HList w -> MultiRWST r w s m ()
+mGetRawS :: Monad m => MultiRWST r w s m (HList s)
+mPutRawS :: Monad m => HList s -> MultiRWST r w s m ()
+mGetRawR = (\(r, _, _) -> r) `liftM` MultiRWST get
+mPutRawR r = MultiRWST $ do
+  ~(_, w, s) <- get
+  put (r, w, s)
+mGetRawW = (\(_, w, _) -> w) `liftM` MultiRWST get
+mPutRawW w = MultiRWST $ do
+  ~(r, _, s) <- get
+  put (r, w, s)
+mGetRawS = (\(_, _, s) -> s) `liftM` MultiRWST get
+mPutRawS s = MultiRWST $ do
+  ~(r, w, _) <- get
+  put (r, w, s)
 
 mapMultiRWST :: (ss ~ (HList r, HList w, HList s))
              => (m (a, ss) -> m' (a', ss))

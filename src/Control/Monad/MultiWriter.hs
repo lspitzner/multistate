@@ -28,6 +28,8 @@ module Control.Monad.MultiWriter {-# DEPRECATED "Use Control.Monad.Trans.MultiWr
   , withMultiWritersAW
   , withMultiWritersWA
   , withMultiWritersW
+  -- * inflate-function (run WriterT in MultiWriterT)
+  , inflateWriter
   -- * other functions
   , mapMultiWriterT
   , mGetRaw
