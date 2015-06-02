@@ -160,6 +160,7 @@ tests = do
   describe "MultiState" $ testsMultiState
   describe "MultiReader" $ testsMultiReader
   describe "MultiWriter" $ testsMultiWriter
+  lazyStateTest
 
 test13MR :: Bool
 test13MR = runIdentity
@@ -188,6 +189,21 @@ test13MS = runIdentity
          $ do
     b <- MS.mGet
     return (b::Bool)
+
+lazyStateTest :: Spec
+lazyStateTest = it "lazyStateTest" $ (33, True) `shouldBe` l
+  where
+    l :: (Int, Bool)
+    l = case runIdentity $ MS.runMultiStateTS ([] :+: [] :+: HNil) action of
+      (x :+: y :+: _) -> (head x, head y)
+    action :: MS.MultiStateT '[[Int], [Bool]] Identity ()
+    action = do
+      action
+      x <- MS.mGet
+      MS.mSet $ (33::Int):x
+      y <- MS.mGet
+      MS.mSet $ True:y
+
 
 main :: IO ()
 main = hspec $ tests

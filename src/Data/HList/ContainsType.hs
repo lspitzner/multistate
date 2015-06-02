@@ -15,9 +15,9 @@ class ContainsType a c where
   getHListElem :: HList c -> a
 
 instance ContainsType a (a ': xs) where
-  setHListElem a (_ :+: xs) = a :+: xs
+  setHListElem a xs = a :+: case xs of (_ :+: xr) -> xr
   getHListElem (x :+: _) = x
 
 instance (ContainsType a xs) => ContainsType a (x ': xs) where
-  setHListElem a (x :+: xs) = x :+: setHListElem a xs
-  getHListElem (_ :+: xs) = getHListElem xs
+  setHListElem a (x :+: xr) = x :+: setHListElem a xr
+  getHListElem (_ :+: xr) = getHListElem xr
