@@ -136,47 +136,4 @@ find anything specific missing.
 
 # Changelog
 
-* 0.2.0.0:
-
-    * Start using DataKinds and TypeOperators to make the HList
-      representation more readable. The translation roughly is:
-
-        ~~~~
-        Null        -> '[]
-        Cons a Null -> '[a]
-        Cons a b    -> a ': b
-        TNull       -> HNil
-        TCons a b   -> a :+: b
-        ~~~~
-
-    * Remove dependency on `tfp` package.
-
-* 0.3.0.0:
-    
-    * Add MultiWriter
-    * support ghc-7.10
-
-* 0.4.0.0:
-
-    * Refactor from Control.Monad.* to Control.Monad.Trans.*
-    * Put classes (MonadMulti*) into separate modules
-    * Add Strict and Lazy variants
-    * Deprecate previous modules
-
-* 0.5.0.0
-    
-    * Breaking changes (!):
-    * Refactor some parts of the interface, see "naming scheme" above;
-      The changes are:
-
-        | old | new |
-        | --- | --- |
-        | withMultiFoo | withMultiFooA |
-        | withMultiFoos | withMultiFoosA |
-        | mAskRaw | mGetRaw |
-        | | mPutRaw |
-        | evalMultiStateT | runMultiStateTNil |
-        | evalMultiStateTWithInitial | runMultiStateTA |
-        | evalMultiReaderT | runMultiReaderTNil |
-        | evalMultiReaderTWithInitial | runMultiReaderTA |
-        | execMultiWriterT | runMultiWriterTW |
+See changelog.md
