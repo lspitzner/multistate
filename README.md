@@ -1,4 +1,8 @@
-# Introduction
+# multistate
+
+[![Build Status](https://secure.travis-ci.org/lspitzner/multistate.svg)](http://travis-ci.org/lspitzner/multistate)
+
+## Introduction
 
 When using multiple Reader/Writer/State transformers in the same monad
 stack, it becomes necessary to lift the operations in order to affect a
@@ -11,7 +15,7 @@ list of values.
 The type inferred for the getter/setter determines which value is
 read/written.
 
-# Example
+## Example
 
 ~~~~
 simpleExample :: IO ()
@@ -42,7 +46,7 @@ Jello, World!
 ( you can find both this and a more complex example
   in an executable in the package. )
 
-# Error Messages
+## Error Messages
 
 If you try to execute an action that requires a specific type in the state,
 but the current state does not contain that type, the error message is
@@ -54,14 +58,14 @@ No instance for (Control.Monad.MultiState.ContainsType Foo '[]) x
 
 where `Foo` is the missing type.
 
-# Naming Scheme
+## Naming Scheme
 
 (Will refer to StateT in this paragraph, but equally valid for Reader/Writer)
 The mtl monad transformers make use of primarily three methods to "unwrap"
 a transformed value:
 `runStateT`, `evalStateT`, `execStateT`. These three all have a type
 matching the pattern `s -> t m a -> m b`, they differ in what `b` is.
-We will use a different naming scheme, for three reaons:
+We will use a different naming scheme, for three reasons:
 
 1) "run", "eval" and "exec" are not in any way intuitive, and should be
    suffixed in any case.
@@ -80,9 +84,9 @@ Our naming scheme will instead be:
 1) `runStateT.*` unwraps a StateT. A suffix controls
    what exactly is returned by the function. There is a special version for
    when the list of states is Nil, `runStateTNil`.
-   
+
 2) `withStateT.*` adds one or more states to a subcomputation. A suffix
-   controlls the exact return value.
+   controls the exact return value.
 
 ~~~~
                  withStates
@@ -123,7 +127,7 @@ withMultiStatesS  :: HList s1 -> MultiStateT (Append s1 s2) m a -> MultiStateT s
 withMultiStates_  :: HList s1 -> MultiStateT (Append s1 s2) m a -> MultiStateT s2 m ()
 ~~~~
 
-# Known Deficits
+## Known Deficits
 
 This package currently lacks a complete set of "lifting instances", i.e.
 instance definitions for classes such as mtl's MonadWriter "over" the newly
@@ -137,6 +141,6 @@ These "lifting instances" would be necessary
 to achieve full compatability with existing transformers. Ping me if you
 find anything specific missing.
 
-# Changelog
+## Changelog
 
 See changelog.md
