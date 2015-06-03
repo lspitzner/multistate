@@ -65,10 +65,12 @@ We will use a different naming scheme, for three reaons:
 
 1) "run", "eval" and "exec" are not in any way intuitive, and should be
    suffixed in any case.
+
 2) For MultiStateT, it makes sense to transform an existing transformer,
    adding another state. The signature would be close to that of runStateT,
    only without the unwrapping part, i.e. `s -> t m a -> t' m b`, where `s`
    is the initial state, and `t` is `t'` with another state added.
+
 3) Sometimes you might want to add/run a single state, or a bunch of them.
    For example, when running an arbitrary StateT, you would need to provide
    a HList of initial states, and would receive a HList of final states.
@@ -78,6 +80,7 @@ Our naming scheme will instead be:
 1) `runStateT.*` unwraps a StateT. A suffix controls
    what exactly is returned by the function. There is a special version for
    when the list of states is Nil, `runStateTNil`.
+   
 2) `withStateT.*` adds one or more states to a subcomputation. A suffix
    controlls the exact return value.
 
