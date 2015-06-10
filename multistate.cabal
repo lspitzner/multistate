@@ -11,7 +11,7 @@ Homepage:      https://github.com/lspitzner/multistate
 Bug-reports:   https://github.com/lspitzner/multistate/issues
 Stability:     Experimental
 category:      Control
-tested-with:   GHC == 7.6.3, GHC == 7.8.3, GHC == 7.8.4, GHC == 7.10.0
+tested-with:   GHC == 7.6.3, GHC == 7.8.4, GHC == 7.10.1
 
 Synopsis: like mtl's ReaderT / WriterT / StateT, but more than one
           contained value/type.
