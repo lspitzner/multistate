@@ -63,6 +63,7 @@ library {
     Control.Monad.Trans.MultiState.Class
     Control.Monad.Trans.MultiState.Lazy
     Control.Monad.Trans.MultiState.Strict
+    Control.Monad.Trans.MultiRWS
     Control.Monad.Trans.MultiRWS.Lazy
     Control.Monad.Trans.MultiRWS.Strict
   other-modules:

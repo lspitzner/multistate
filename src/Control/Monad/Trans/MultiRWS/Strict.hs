@@ -2,11 +2,14 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
+-- | The multi-valued version of mtl's RWS / RWST
 module Control.Monad.Trans.MultiRWS.Strict
   (
+  -- * MultiRWST
     MultiRWST(..)
   , MultiRWSTNull
   , MultiRWS
+  -- * run-functions (extracting from RWST)
   , runMultiRWST
   , runMultiRWSTASW
   , runMultiRWSTW
@@ -14,6 +17,7 @@ module Control.Monad.Trans.MultiRWS.Strict
   , runMultiRWSTSW
   , runMultiRWSTNil
   , runMultiRWSTNil_
+  -- * with-functions (extending an RWST)
   , withMultiReader
   , withMultiReader_
   , withMultiReaders
@@ -38,12 +42,14 @@ module Control.Monad.Trans.MultiRWS.Strict
   , withMultiStatesA
   , withMultiStatesS
   , withMultiStates_
+  -- * inflate-functions (run simple transformer in MultiRWST)
   , inflateReader
   , inflateMultiReader
   , inflateWriter
   , inflateMultiWriter
   , inflateState
   , inflateMultiState
+  -- * other functions
   , mapMultiRWST
   , mGetRawR
   , mGetRawW
