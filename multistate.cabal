@@ -19,16 +19,16 @@ Description:
   When using multiple Read\/Write\/State transformers in the same monad stack,
   it becomes necessary to lift the operations in order to affect a specific
   transformer.
-  Using heterogenous lists (and all kinds of GHC extensions magic),
+  Using heterogeneous lists (and all kinds of GHC extensions magic),
   this package provides transformers that remove that necessity:
   MultiReaderT\/MultiWriterT\/MultiStateT\/MultiRWST can contain a
-  heterogenous list of values.
+  heterogeneous list of values.
   .
   See the <https://github.com/lspitzner/multistate README> for
   a longer description.
   .
   The latest published version contains some breaking changes.
-  Please complain if this causes problems (for future considerations).
+  Please complain if this causes problems (for future consideration).
 
 extra-source-files:
     README.md

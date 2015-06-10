@@ -7,9 +7,9 @@
 When using multiple Reader/Writer/State transformers in the same monad
 stack, it becomes necessary to lift the operations in order to affect a
 specific transformer.
-Using heterogenous lists (and all kinds of GHC extensions magic),
+Using heterogeneous lists (and all kinds of GHC extensions magic),
 this package provides transformers that remove that necessity:
-MultiReaderT/MultiWriterT/MultiStateT can contain a heterogenous
+MultiReaderT/MultiWriterT/MultiStateT can contain a heterogeneous
 list of values.
 
 The type inferred for the getter/setter determines which value is
@@ -57,6 +57,13 @@ No instance for (Control.Monad.MultiState.ContainsType Foo '[]) x
 ~~~~
 
 where `Foo` is the missing type.
+
+## Compatibility with Single-Valued Transformers
+
+It is possible to run single-valued actions inside multi-valued
+transformers using the `inflate` functions. A function transforming
+a multi-valued transformer with exactly one element into a
+single-valued transformer would be trivial, but it is currently not provided.
 
 ## Naming Scheme
 
@@ -138,7 +145,7 @@ instance (MonadWriter w m) => MonadWriter w (MultiStateT c m) where ..
 ~~~~
 
 These "lifting instances" would be necessary
-to achieve full compatability with existing transformers. Ping me if you
+to achieve full compatibility with existing transformers. Ping me if you
 find anything specific missing.
 
 ## Changelog
