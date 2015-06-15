@@ -1,6 +1,7 @@
 # multistate
 
 [![Build Status](https://secure.travis-ci.org/lspitzner/multistate.svg)](http://travis-ci.org/lspitzner/multistate)
+[![Hackage](https://img.shields.io/hackage/v/multistate.svg)](https://hackage.haskell.org/package/multistate)
 
 ## Introduction
 
