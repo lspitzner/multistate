@@ -44,5 +44,4 @@ module Control.Monad.Trans.MultiState
 
 
 -- just re-export
-import Control.Monad.Trans.MultiState.Class
 import Control.Monad.Trans.MultiState.Lazy

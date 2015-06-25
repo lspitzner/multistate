@@ -29,5 +29,4 @@ module Control.Monad.Trans.MultiReader
 
 
 -- just re-export
-import Control.Monad.Trans.MultiReader.Class
 import Control.Monad.Trans.MultiReader.Lazy

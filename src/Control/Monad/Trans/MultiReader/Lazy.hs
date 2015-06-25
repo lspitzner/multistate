@@ -5,6 +5,8 @@ module Control.Monad.Trans.MultiReader.Lazy
     MultiReaderT(..)
   , MultiReaderTNull
   , MultiReader
+  -- * MonadMultiReader class
+  , MonadMultiReader(..)
   -- * run-functions
   , runMultiReaderT
   , runMultiReaderT_

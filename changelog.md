@@ -1,5 +1,9 @@
 # Changelog for [`multistate` package](https://hackage.haskell.org/package/multistate)
 
+## 0.6.1.0 *June 2015*
+
+  * Export classes from transformer modules
+
 ## 0.6.0.0 *June 2015*
 
   * Add `MultiRWST`

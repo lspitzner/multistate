@@ -9,6 +9,8 @@ module Control.Monad.Trans.MultiWriter.Strict
     MultiWriterT(..)
   , MultiWriterTNull
   , MultiWriter
+  -- * MonadMultiWriter class
+  , MonadMultiWriter(..)
   -- * run-functions
   , runMultiWriterT
   , runMultiWriterTAW

@@ -9,6 +9,8 @@ module Control.Monad.Trans.MultiWriter.Lazy
     MultiWriterT(..)
   , MultiWriterTNull
   , MultiWriter
+  -- * MonadMultiWriter class
+  , MonadMultiWriter(..)
   -- * run-functions
   , runMultiWriterT
   , runMultiWriterTAW

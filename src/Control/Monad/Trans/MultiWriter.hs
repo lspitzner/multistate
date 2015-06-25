@@ -36,5 +36,4 @@ where
 
 
 -- just re-exports
-import Control.Monad.Trans.MultiWriter.Class
 import Control.Monad.Trans.MultiWriter.Lazy

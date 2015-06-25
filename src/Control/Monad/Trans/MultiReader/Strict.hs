@@ -5,6 +5,8 @@ module Control.Monad.Trans.MultiReader.Strict
     MultiReaderT(..)
   , MultiReaderTNull
   , MultiReader
+  -- * MonadMultiReader class
+  , MonadMultiReader(..)
   -- * run-functions
   , runMultiReaderT
   , runMultiReaderT_
