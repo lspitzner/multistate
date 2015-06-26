@@ -69,6 +69,7 @@ import Control.Monad               ( liftM
                                    , ap
                                    , void )
 import Data.Monoid                 ( Monoid )
+import Control.Monad.Fix           ( MonadFix(..) )
 
 
 
@@ -121,6 +122,9 @@ instance (Monad m, ContainsType a c)
       => MonadMultiState a (MultiStateT c m) where
   mSet v = MultiStateT $ get >>= put . setHListElem v
   mGet = MultiStateT $ liftM getHListElem get
+
+instance MonadFix m => MonadFix (MultiStateT s m) where
+  mfix f = MultiStateT $ mfix (runMultiStateTRaw . f)
 
 -- methods
 

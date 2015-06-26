@@ -64,6 +64,7 @@ import Control.Applicative         ( Applicative(..) )
 import Control.Monad               ( liftM
                                    , ap
                                    , void )
+import Control.Monad.Fix           ( MonadFix(..) )
 
 import Data.Monoid
 
@@ -116,6 +117,9 @@ instance (Monad m, ContainsType a c, Monoid a)
   mTell v = MultiWriterT $ do
     x <- get
     put $ setHListElem (getHListElem x `mappend` v) x
+
+instance MonadFix m => MonadFix (MultiWriterT w m) where
+  mfix f = MultiWriterT $ mfix (runMultiWriterTRaw . f)
 
 -- methods
 

@@ -52,6 +52,7 @@ import Control.Applicative        ( Applicative(..) )
 import Control.Monad              ( liftM
                                   , ap
                                   , void )
+import Control.Monad.Fix          ( MonadFix(..) )
 
 
 
@@ -104,6 +105,9 @@ instance MonadTrans (MultiReaderT x) where
 instance (Monad m, ContainsType a c)
       => MonadMultiReader a (MultiReaderT c m) where
   mAsk = MultiReaderT $ liftM getHListElem get
+
+instance MonadFix m => MonadFix (MultiReaderT r m) where
+  mfix f = MultiReaderT $ mfix (runMultiReaderTRaw . f)
 
 -- methods
 

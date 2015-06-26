@@ -1,5 +1,9 @@
 # Changelog for [`multistate` package](https://hackage.haskell.org/package/multistate)
 
+## 0.6.2.0 *June 2015*
+
+  * Add MonadFix instances
+
 ## 0.6.1.0 *June 2015*
 
   * Export classes from transformer modules

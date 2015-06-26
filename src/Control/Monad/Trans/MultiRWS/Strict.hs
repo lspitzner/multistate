@@ -95,6 +95,7 @@ import Control.Applicative          ( Applicative(..) )
 import Control.Monad                ( liftM
                                     , ap
                                     , void )
+import Control.Monad.Fix            ( MonadFix(..) )
 
 import Data.Monoid
 
@@ -140,6 +141,9 @@ instance (Monad m, ContainsType a s)
   mGet = MultiRWST $ do
     (_,_,s) <- get
     return $ getHListElem s
+
+instance MonadFix m => MonadFix (MultiRWST r w s m) where
+  mfix f = MultiRWST $ mfix (runMultiRWSTRaw . f)
 
 -- methods
 
