@@ -94,9 +94,9 @@ test-suite multistate-test {
     -- no version constraints necessary, because they are already
     -- given by library
     multistate,
-    base,
-    transformers,
-    hspec
+    base <4.9,
+    transformers <0.5,
+    hspec <2.3
   ghc-options:      -Wall
   main-is:          Test.hs
   hs-source-dirs:   test
@@ -111,9 +111,9 @@ executable multistate-example {
       -- no version constraints necessary, because they are already
       -- given by library
       multistate,
-      base,
-      mtl,
-      transformers
+      base <4.9,
+      mtl <2.3,
+      transformers <0.5
   } else {
     buildable: False
   }
