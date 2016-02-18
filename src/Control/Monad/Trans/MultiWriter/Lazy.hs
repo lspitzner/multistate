@@ -67,6 +67,15 @@ import Control.Monad                   ( MonadPlus(..)
                                        , liftM
                                        , ap
                                        , void )
+import Control.Monad.Base              ( MonadBase(..)
+                                       , liftBaseDefault
+                                       )
+import Control.Monad.Trans.Control     ( MonadTransControl(..)
+                                       , MonadBaseControl(..)
+                                       , ComposeSt
+                                       , defaultLiftBaseWith
+                                       , defaultRestoreM
+                                       )
 import Control.Monad.Fix               ( MonadFix(..) )
 import Control.Monad.IO.Class          ( MonadIO(..) )
 
@@ -241,3 +250,16 @@ instance (Functor m, MonadPlus m) => Alternative (MultiWriterT c m) where
 instance MonadPlus m => MonadPlus (MultiWriterT c m) where
   mzero = MultiWriterT $ mzero
   MultiWriterT m `mplus` MultiWriterT n = MultiWriterT $ m `mplus` n
+
+instance MonadBase b m => MonadBase b (MultiWriterT c m) where
+  liftBase = liftBaseDefault
+
+instance MonadTransControl (MultiWriterT c) where
+  type StT (MultiWriterT c) a = (a, HList c)
+  liftWith f = MultiWriterT $ liftWith $ \s -> f $ \r -> s $ runMultiWriterTRaw r
+  restoreT = MultiWriterT . restoreT
+
+instance MonadBaseControl b m => MonadBaseControl b (MultiWriterT c m) where
+  type StM (MultiWriterT c m) a = ComposeSt (MultiWriterT c) m a
+  liftBaseWith = defaultLiftBaseWith
+  restoreM = defaultRestoreM

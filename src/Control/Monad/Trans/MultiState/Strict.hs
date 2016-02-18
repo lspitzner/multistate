@@ -71,6 +71,15 @@ import Control.Monad                   ( MonadPlus(..)
                                        , liftM
                                        , ap
                                        , void )
+import Control.Monad.Base              ( MonadBase(..)
+                                       , liftBaseDefault
+                                       )
+import Control.Monad.Trans.Control     ( MonadTransControl(..)
+                                       , MonadBaseControl(..)
+                                       , ComposeSt
+                                       , defaultLiftBaseWith
+                                       , defaultRestoreM
+                                       )
 import Data.Monoid                     ( Monoid )
 import Control.Monad.Fix               ( MonadFix(..) )
 import Control.Monad.IO.Class          ( MonadIO(..) )
@@ -260,3 +269,16 @@ instance (Functor m, MonadPlus m) => Alternative (MultiStateT s m) where
 instance MonadPlus m => MonadPlus (MultiStateT s m) where
   mzero = MultiStateT $ mzero
   MultiStateT m `mplus` MultiStateT n = MultiStateT $ m `mplus` n
+
+instance MonadBase b m => MonadBase b (MultiStateT s m) where
+  liftBase = liftBaseDefault
+
+instance MonadTransControl (MultiStateT s) where
+  type StT (MultiStateT s) a = (a, HList s)
+  liftWith f = MultiStateT $ liftWith $ \s -> f $ \r -> s $ runMultiStateTRaw r
+  restoreT = MultiStateT . restoreT
+
+instance MonadBaseControl b m => MonadBaseControl b (MultiStateT s m) where
+  type StM (MultiStateT s m) a = ComposeSt (MultiStateT s) m a
+  liftBaseWith = defaultLiftBaseWith
+  restoreM = defaultRestoreM

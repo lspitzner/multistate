@@ -98,6 +98,15 @@ import Control.Monad                   ( MonadPlus(..)
                                        , liftM
                                        , ap
                                        , void )
+import Control.Monad.Base              ( MonadBase(..)
+                                       , liftBaseDefault
+                                       )
+import Control.Monad.Trans.Control     ( MonadTransControl(..)
+                                       , MonadBaseControl(..)
+                                       , ComposeSt
+                                       , defaultLiftBaseWith
+                                       , defaultRestoreM
+                                       )
 import Control.Monad.Fix               ( MonadFix(..) )
 import Control.Monad.IO.Class          ( MonadIO(..) )
 
@@ -428,3 +437,16 @@ instance (Functor m, MonadPlus m) => Alternative (MultiRWST r w s m) where
 instance MonadPlus m => MonadPlus (MultiRWST r w s m) where
   mzero = MultiRWST $ mzero
   MultiRWST m `mplus` MultiRWST n = MultiRWST $ m `mplus` n
+
+instance MonadBase b m => MonadBase b (MultiRWST r w s m) where
+  liftBase = liftBaseDefault
+
+instance MonadTransControl (MultiRWST r w s) where
+  type StT (MultiRWST r w s) a = (a, (HList r, HList w, HList s))
+  liftWith f = MultiRWST $ liftWith $ \s -> f $ \r -> s $ runMultiRWSTRaw r
+  restoreT = MultiRWST . restoreT
+
+instance MonadBaseControl b m => MonadBaseControl b (MultiRWST r w s m) where
+  type StM (MultiRWST r w s m) a = ComposeSt (MultiRWST r w s) m a
+  liftBaseWith = defaultLiftBaseWith
+  restoreM = defaultRestoreM

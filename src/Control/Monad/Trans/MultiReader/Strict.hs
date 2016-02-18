@@ -55,6 +55,15 @@ import Control.Monad                   ( MonadPlus(..)
                                        , liftM
                                        , ap
                                        , void )
+import Control.Monad.Base              ( MonadBase(..)
+                                       , liftBaseDefault
+                                       )
+import Control.Monad.Trans.Control     ( MonadTransControl(..)
+                                       , MonadBaseControl(..)
+                                       , ComposeSt
+                                       , defaultLiftBaseWith
+                                       , defaultRestoreM
+                                       )
 import Control.Monad.Fix               ( MonadFix(..) )
 import Control.Monad.IO.Class          ( MonadIO(..) )
 
@@ -190,3 +199,16 @@ instance (Functor m, MonadPlus m) => Alternative (MultiReaderT c m) where
 instance MonadPlus m => MonadPlus (MultiReaderT c m) where
   mzero = MultiReaderT $ mzero
   MultiReaderT m `mplus` MultiReaderT n = MultiReaderT $ m `mplus` n
+
+instance MonadBase b m => MonadBase b (MultiReaderT r m) where
+  liftBase = liftBaseDefault
+
+instance MonadTransControl (MultiReaderT r) where
+  type StT (MultiReaderT r) a = (a, HList r)
+  liftWith f = MultiReaderT $ liftWith $ \s -> f $ \r -> s $ runMultiReaderTRaw r
+  restoreT = MultiReaderT . restoreT
+
+instance MonadBaseControl b m => MonadBaseControl b (MultiReaderT r m) where
+  type StM (MultiReaderT r m) a = ComposeSt (MultiReaderT r) m a
+  liftBaseWith = defaultLiftBaseWith
+  restoreM = defaultRestoreM
