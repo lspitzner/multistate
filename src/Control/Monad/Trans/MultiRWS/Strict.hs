@@ -91,8 +91,11 @@ import Control.Monad.Trans.Class       ( MonadTrans
 
 import Data.Functor.Identity           ( Identity )
 
-import Control.Applicative             ( Applicative(..) )
-import Control.Monad                   ( liftM
+import Control.Applicative             ( Applicative(..)
+                                       , Alternative(..)
+                                       )
+import Control.Monad                   ( MonadPlus(..)
+                                       , liftM
                                        , ap
                                        , void )
 import Control.Monad.Fix               ( MonadFix(..) )
@@ -417,3 +420,11 @@ mapMultiRWST f = MultiRWST . mapStateT f . runMultiRWSTRaw
 
 instance MonadIO m => MonadIO (MultiRWST r w s m) where
   liftIO = lift . liftIO
+
+instance (Functor m, MonadPlus m) => Alternative (MultiRWST r w s m) where
+  empty = lift mzero
+  MultiRWST m <|> MultiRWST n = MultiRWST $ m <|> n
+
+instance MonadPlus m => MonadPlus (MultiRWST r w s m) where
+  mzero = MultiRWST $ mzero
+  MultiRWST m `mplus` MultiRWST n = MultiRWST $ m `mplus` n

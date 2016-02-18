@@ -60,8 +60,11 @@ import Control.Monad.Writer.Class      ( MonadWriter
 
 import Data.Functor.Identity           ( Identity )
 
-import Control.Applicative             ( Applicative(..) )
-import Control.Monad                   ( liftM
+import Control.Applicative             ( Applicative(..)
+                                       , Alternative(..)
+                                       )
+import Control.Monad                   ( MonadPlus(..)
+                                       , liftM
                                        , ap
                                        , void )
 import Control.Monad.Fix               ( MonadFix(..) )
@@ -230,3 +233,11 @@ instance (MonadWriter w m) => MonadWriter w (MultiWriterT c m) where
 
 instance MonadIO m => MonadIO (MultiWriterT c m) where
   liftIO = lift . liftIO
+
+instance (Functor m, MonadPlus m) => Alternative (MultiWriterT c m) where
+  empty = lift mzero
+  MultiWriterT m <|> MultiWriterT n = MultiWriterT $ m <|> n
+
+instance MonadPlus m => MonadPlus (MultiWriterT c m) where
+  mzero = MultiWriterT $ mzero
+  MultiWriterT m `mplus` MultiWriterT n = MultiWriterT $ m `mplus` n
