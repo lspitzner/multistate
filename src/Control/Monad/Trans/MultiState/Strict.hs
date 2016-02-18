@@ -262,7 +262,7 @@ instance (MonadWriter w m) => MonadWriter w (MultiStateT c m) where
 instance MonadIO m => MonadIO (MultiStateT c m) where
   liftIO = lift . liftIO
 
-instance (Functor m, MonadPlus m) => Alternative (MultiStateT s m) where
+instance (Functor m, Applicative m, MonadPlus m) => Alternative (MultiStateT s m) where
   empty = lift mzero
   MultiStateT m <|> MultiStateT n = MultiStateT $ m <|> n
 

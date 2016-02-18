@@ -430,7 +430,7 @@ mapMultiRWST f = MultiRWST . mapStateT f . runMultiRWSTRaw
 instance MonadIO m => MonadIO (MultiRWST r w s m) where
   liftIO = lift . liftIO
 
-instance (Functor m, MonadPlus m) => Alternative (MultiRWST r w s m) where
+instance (Functor m, Applicative m, MonadPlus m) => Alternative (MultiRWST r w s m) where
   empty = lift mzero
   MultiRWST m <|> MultiRWST n = MultiRWST $ m <|> n
 

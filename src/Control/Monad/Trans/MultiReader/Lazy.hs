@@ -192,7 +192,7 @@ instance (MonadWriter w m) => MonadWriter w (MultiReaderT c m) where
 instance MonadIO m => MonadIO (MultiReaderT c m) where
   liftIO = lift . liftIO
 
-instance (Functor m, MonadPlus m) => Alternative (MultiReaderT c m) where
+instance (Functor m, Applicative m, MonadPlus m) => Alternative (MultiReaderT c m) where
   empty = lift mzero
   MultiReaderT m <|> MultiReaderT n = MultiReaderT $ m <|> n
 
