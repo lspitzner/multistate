@@ -79,24 +79,24 @@ import Control.Monad.Trans.MultiWriter.Lazy  ( MultiWriterT(..)
 import Control.Monad.Trans.MultiState.Lazy   ( MultiStateT(..)
                                              , runMultiStateT )
 
-import Control.Monad.State.Lazy   ( StateT(..)
-                                  , MonadState(..)
-                                  , execStateT
-                                  , evalStateT
-                                  , mapStateT )
-import Control.Monad.Reader       ( ReaderT(..) )
-import Control.Monad.Writer.Lazy  ( WriterT(..) )
-import Control.Monad.Trans.Class  ( MonadTrans
-                                  , lift )
+import Control.Monad.State.Lazy        ( StateT(..)
+                                       , MonadState(..)
+                                       , execStateT
+                                       , evalStateT
+                                       , mapStateT )
+import Control.Monad.Reader            ( ReaderT(..) )
+import Control.Monad.Writer.Lazy       ( WriterT(..) )
+import Control.Monad.Trans.Class       ( MonadTrans
+                                       , lift )
 
-import Data.Functor.Identity      ( Identity )
+import Data.Functor.Identity           ( Identity )
 
-import Control.Applicative        ( Applicative(..) )
-import Control.Monad              ( liftM
-                                  , ap
-                                  , void )
-import Control.Monad.Fix          ( MonadFix(..) )
-import Control.Monad.IO.Class     ( MonadIO(..) )
+import Control.Applicative             ( Applicative(..) )
+import Control.Monad                   ( liftM
+                                       , ap
+                                       , void )
+import Control.Monad.Fix               ( MonadFix(..) )
+import Control.Monad.IO.Class          ( MonadIO(..) )
 
 import Data.Monoid
 

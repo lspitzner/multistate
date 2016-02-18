@@ -44,28 +44,28 @@ import Data.HList.ContainsType
 
 import Control.Monad.Trans.MultiWriter.Class ( MonadMultiWriter(..) )
 
-import Control.Monad.State.Lazy   ( StateT(..)
-                                  , MonadState(..)
-                                  , execStateT
-                                  , evalStateT
-                                  , mapStateT )
-import Control.Monad.Writer.Lazy  ( WriterT(..) ) 
-import Control.Monad.Trans.Class  ( MonadTrans
-                                  , lift )
-import Control.Monad.Writer.Class ( MonadWriter
-                                  , listen
-                                  , tell
-                                  , writer
-                                  , pass )
+import Control.Monad.State.Lazy        ( StateT(..)
+                                       , MonadState(..)
+                                       , execStateT
+                                       , evalStateT
+                                       , mapStateT )
+import Control.Monad.Writer.Lazy       ( WriterT(..) )
+import Control.Monad.Trans.Class       ( MonadTrans
+                                       , lift )
+import Control.Monad.Writer.Class      ( MonadWriter
+                                       , listen
+                                       , tell
+                                       , writer
+                                       , pass )
 
-import Data.Functor.Identity      ( Identity )
+import Data.Functor.Identity           ( Identity )
 
-import Control.Applicative        ( Applicative(..) )
-import Control.Monad              ( liftM
-                                  , ap
-                                  , void )
-import Control.Monad.Fix          ( MonadFix(..) )
-import Control.Monad.IO.Class      ( MonadIO(..) )
+import Control.Applicative             ( Applicative(..) )
+import Control.Monad                   ( liftM
+                                       , ap
+                                       , void )
+import Control.Monad.Fix               ( MonadFix(..) )
+import Control.Monad.IO.Class          ( MonadIO(..) )
 
 import Data.Monoid
 
