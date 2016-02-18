@@ -70,6 +70,7 @@ import Control.Monad              ( liftM
                                   , void )
 import Data.Monoid                ( Monoid )
 import Control.Monad.Fix          ( MonadFix(..) )
+import Control.Monad.IO.Class     ( MonadIO(..) )
 
 
 
@@ -247,3 +248,6 @@ instance (MonadWriter w m) => MonadWriter w (MultiStateT c m) where
   pass = MultiStateT .
     mapStateT (pass . liftM (\(~(~(a, f), w)) -> ((a, w), f))) .
     runMultiStateTRaw  
+
+instance MonadIO m => MonadIO (MultiStateT c m) where
+  liftIO = lift . liftIO

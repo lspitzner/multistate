@@ -65,6 +65,7 @@ import Control.Monad               ( liftM
                                    , ap
                                    , void )
 import Control.Monad.Fix           ( MonadFix(..) )
+import Control.Monad.IO.Class      ( MonadIO(..) )
 
 import Data.Monoid
 
@@ -226,3 +227,6 @@ instance (MonadWriter w m) => MonadWriter w (MultiWriterT c m) where
   pass = MultiWriterT .
     mapStateT (pass . liftM (\((a, f), w) -> ((a, w), f))) .
     runMultiWriterTRaw
+
+instance MonadIO m => MonadIO (MultiWriterT c m) where
+  liftIO = lift . liftIO

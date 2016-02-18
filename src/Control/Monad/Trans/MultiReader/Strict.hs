@@ -53,6 +53,7 @@ import Control.Monad              ( liftM
                                   , ap
                                   , void )
 import Control.Monad.Fix          ( MonadFix(..) )
+import Control.Monad.IO.Class     ( MonadIO(..) )
 
 
 
@@ -176,6 +177,5 @@ instance (MonadWriter w m) => MonadWriter w (MultiReaderT c m) where
     mapStateT (pass . liftM (\((a, f), w) -> ((a, w), f))) .
     runMultiReaderTRaw  
 
-
-
-
+instance MonadIO m => MonadIO (MultiReaderT c m) where
+  liftIO = lift . liftIO

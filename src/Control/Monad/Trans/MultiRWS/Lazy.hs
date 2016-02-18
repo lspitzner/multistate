@@ -96,6 +96,7 @@ import Control.Monad              ( liftM
                                   , ap
                                   , void )
 import Control.Monad.Fix          ( MonadFix(..) )
+import Control.Monad.IO.Class     ( MonadIO(..) )
 
 import Data.Monoid
 
@@ -411,3 +412,8 @@ mapMultiRWST :: (ss ~ (HList r, HList w, HList s))
              -> MultiRWST r w s m a
              -> MultiRWST r w s m' a'
 mapMultiRWST f = MultiRWST . mapStateT f . runMultiRWSTRaw
+
+-- foreign lifting instances
+
+instance MonadIO m => MonadIO (MultiRWST r w s m) where
+  liftIO = lift . liftIO
