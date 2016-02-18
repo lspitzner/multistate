@@ -1,5 +1,16 @@
 # Changelog for [`multistate` package](https://hackage.haskell.org/package/multistate)
 
+## 0.7.0.0 *February 2016*
+
+  * Add instances:
+
+    + MonadIO
+    + Alternative
+    + MonadPlus
+    + MonadBase
+    + MonadTransControl
+    + MonadBaseControl
+
 ## 0.6.2.0 *June 2015*
 
   * Add MonadFix instances
