@@ -42,6 +42,9 @@ module Control.Monad.Trans.MultiRWS
   , withMultiStatesA
   , withMultiStatesS
   , withMultiStates_
+  -- * without-functions (reducing an RWST; inverse of with)
+  , withoutMultiReader
+  , withoutMultiState
   -- * inflate-functions (run simple transformer in MultiRWST)
   , inflateReader
   , inflateMultiReader

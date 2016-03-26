@@ -30,6 +30,8 @@ module Control.Monad.Trans.MultiState.Strict
   , withMultiStatesA
   , withMultiStatesS
   , withMultiStates_
+  -- * without-function (single state)
+  , withoutMultiState
   -- * inflate-functions (run single state in multiple states)
   , inflateState
   , inflateReader
@@ -189,7 +191,7 @@ withMultiState_  :: (Functor m, Monad m) => s -> MultiStateT (s ': ss) m a -> Mu
 withMultiState = withMultiStateAS
 withMultiStateAS x k = MultiStateT $ do
   s <- get
-  ~(a, s') <- lift $ runStateT (runMultiStateTRaw k) (x :+: s)
+  (a, s') <- lift $ runStateT (runMultiStateTRaw k) (x :+: s)
   case s' of x' :+: sr' -> do put sr'; return (a, x')
 withMultiStateSA s k = (\(a,b) -> (b,a)) `liftM` withMultiStateAS s k
 withMultiStateA  s k = fst `liftM` withMultiStateAS s k
@@ -219,6 +221,13 @@ withMultiStatesS (x :+: xs)  = liftM (\(x', xs') -> x' :+: xs')
                         . withMultiStateS x
 withMultiStates_  HNil       = liftM (const ())
 withMultiStates_ (x :+: xs)  = withMultiStates_ xs . withMultiState_ x
+
+withoutMultiState :: (Functor m, Monad m) => MultiStateT ss m a -> MultiStateT (s ': ss) m a
+withoutMultiState k = MultiStateT $ do
+  s :+: sr <- get
+  (a, sr') <- lift $ runMultiStateT sr k
+  put (s :+: sr')
+  return a
 
 inflateState :: (Monad m, ContainsType s ss)
              => StateT s m a

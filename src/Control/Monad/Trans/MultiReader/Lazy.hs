@@ -12,12 +12,14 @@ module Control.Monad.Trans.MultiReader.Lazy
   , runMultiReaderT_
   , runMultiReaderTNil
   , runMultiReaderTNil_
-  -- * with-functions (single Reader)
+  -- * with-functions (single reader)
   , withMultiReader
   , withMultiReader_
-  -- * with-functions (multiple Readers)
+  -- * with-functions (multiple readers)
   , withMultiReaders
   , withMultiReaders_
+  -- * without-function (single reader)
+  , withoutMultiReader
   -- * inflate-function (run ReaderT in MultiReaderT)
   , inflateReader
   -- * other functions
@@ -166,6 +168,11 @@ withMultiReaders  HNil       = id
 withMultiReaders  (x :+: xs) = withMultiReaders xs . withMultiReader x
 withMultiReaders_ HNil       = liftM (const ())
 withMultiReaders_ (x :+: xs) = withMultiReaders_ xs . withMultiReader_ x
+
+withoutMultiReader :: Monad m => MultiReaderT rs m a -> MultiReaderT (r ': rs) m a
+withoutMultiReader k = MultiReaderT $ do
+  _ :+: rr <- get
+  lift $ runMultiReaderT rr k
 
 inflateReader :: (Monad m, ContainsType r rs)
               => ReaderT r m a

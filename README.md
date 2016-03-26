@@ -101,6 +101,8 @@ Our naming scheme will instead be:
             /-------------------------------------------------------\
             |     withState                withState .. withState   v
 StateT '[s, ..] m --------> StateT '[..] m --------> .. --------> StateT '[] m
+            |     <--------                                         |
+            |   (withoutState)                                      |
             |                                                       |
             |                                                       |
             |   runStateT                            runStateTNil   |

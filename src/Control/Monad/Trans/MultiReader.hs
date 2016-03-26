@@ -12,12 +12,14 @@ module Control.Monad.Trans.MultiReader
   , runMultiReaderT_
   , runMultiReaderTNil
   , runMultiReaderTNil_
-  -- * with-functions (single Reader)
+  -- * with-functions (single reader)
   , withMultiReader
   , withMultiReader_
-  -- * with-functions (multiple Readers)
+  -- * with-functions (multiple readers)
   , withMultiReaders
   , withMultiReaders_
+  -- * without-function (single reader)
+  , withoutMultiReader
   -- * inflate-function (run ReaderT in MultiReaderT)
   , inflateReader
   -- * other functions

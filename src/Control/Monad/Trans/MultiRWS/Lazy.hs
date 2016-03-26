@@ -46,6 +46,9 @@ module Control.Monad.Trans.MultiRWS.Lazy
   , withMultiStatesA
   , withMultiStatesS
   , withMultiStates_
+  -- * without-functions (reducing an RWST; inverse of with)
+  , withoutMultiReader
+  , withoutMultiState
   -- * inflate-functions (run simple transformer in MultiRWST)
   , inflateReader
   , inflateMultiReader
@@ -360,6 +363,20 @@ withMultiStatesS (x :+: xs) k = do
   return (x' :+: xs')
 withMultiStates_ HNil       = void
 withMultiStates_ (x :+: xs) = withMultiStates_ xs . withMultiState_ x
+
+withoutMultiReader :: Monad m => MultiRWST rs w s m a -> MultiRWST (r ': rs) w s m a
+withoutMultiReader k = MultiRWST $ do
+  (rs@(_ :+: rr), w, s) <- get
+  ~(a, ~(_, w', s')) <- lift $ runStateT (runMultiRWSTRaw k) (rr, w, s)
+  put (rs, w', s')
+  return a
+
+withoutMultiState :: Monad m => MultiRWST r w ss m a -> MultiRWST r w (s ': ss) m a
+withoutMultiState k = MultiRWST $ do
+  (r, w, s :+: sr) <- get
+  ~(a, ~(_, w', s')) <- lift $ runStateT (runMultiRWSTRaw k) (r, w, sr)
+  put (r, w', s :+: s')
+  return a
 
 inflateReader :: (Monad m, ContainsType r rs)
               => ReaderT r m a

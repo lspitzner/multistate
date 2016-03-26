@@ -30,6 +30,8 @@ module Control.Monad.Trans.MultiState.Lazy
   , withMultiStatesA
   , withMultiStatesS
   , withMultiStates_
+  -- * without-function (single state)
+  , withoutMultiState
   -- * inflate-functions (run single state in multiple states)
   , inflateState
   , inflateReader
@@ -221,6 +223,13 @@ withMultiStatesS (x :+: xs)  = liftM (\(~(x', xs')) -> x' :+: xs')
                         . withMultiStateS x
 withMultiStates_  HNil       = liftM (const ())
 withMultiStates_ (x :+: xs)  = withMultiStates_ xs . withMultiState_ x
+
+withoutMultiState :: (Functor m, Monad m) => MultiStateT ss m a -> MultiStateT (s ': ss) m a
+withoutMultiState k = MultiStateT $ do
+  s :+: sr <- get
+  ~(a, sr') <- lift $ runMultiStateT sr k
+  put (s :+: sr')
+  return a
 
 inflateState :: (Monad m, ContainsType s ss)
              => StateT s m a

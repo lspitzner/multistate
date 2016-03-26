@@ -31,6 +31,8 @@ module Control.Monad.Trans.MultiState
   , withMultiStatesA
   , withMultiStatesS
   , withMultiStates_
+  -- * without-function (single state)
+  , withoutMultiState
   -- * inflate-functions (run single state in multiple states)
   , inflateState
   , inflateReader
