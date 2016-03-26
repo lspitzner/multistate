@@ -70,7 +70,7 @@ library {
     transformers >= 0.3   && <0.5,
     tagged       >= 0.7   && <0.9,
     transformers-base <0.5,
-    monad-control     <1.1
+    monad-control >= 1.0  && <1.1
   default-extensions:
     GADTs
     TypeFamilies
