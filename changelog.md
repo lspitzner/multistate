@@ -1,5 +1,9 @@
 # Changelog for [`multistate` package](https://hackage.haskell.org/package/multistate)
 
+## 0.7.1.0 *March 2016*
+
+  * Add new method `withoutMultiFoo`, inverse of `withMultiFoo`
+
 ## 0.7.0.0 *February 2016*
 
   * Add instances:
@@ -60,7 +64,7 @@
 
   * Deprecate previous modules
 
-## 0.3.0.0 *Januar 2015*
+## 0.3.0.0 *January 2015*
 
   * Add `MultiWriter`
 
@@ -68,7 +72,7 @@
 
   * support ghc-7.10
 
-## 0.2.0.0 *Januar 2015*
+## 0.2.0.0 *January 2015*
 
   * Start using DataKinds and TypeOperators to make the HList
     representation more readable. The translation roughly is:
