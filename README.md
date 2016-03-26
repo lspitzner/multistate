@@ -20,10 +20,10 @@ read/written.
 
 ~~~~
 simpleExample :: IO ()
-simpleExample = evalMultiStateT          -- start with an empty state,
+simpleExample = runMultiStateTNil_       -- start with an empty state,
                                          --   i.e. :: MultiStateT '[] IO
-              $ withMultiState 'H'       -- "adding" a char to the state
-              $ withMultiState "ello, World!" -- and a string
+              $ withMultiStateA 'H'      -- "adding" a char to the state
+              $ withMultiStateA "ello, World!" -- and a string
               $ do                       -- so:
   -- the monad here is MultiStateT '[String, Char] IO
   let combinedPrint = do       -- no type signature necessary
