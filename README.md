@@ -109,10 +109,10 @@ StateT '[s, ..] m --------> StateT '[..] m --------> .. --------> StateT '[] m
             \--------------------> m .. <---------------------------/
 ~~~~
 
-Specific functions are
+Specific functions are (constraints omitted):
 
 ~~~~
-runMultiStateT = runStateTAS
+runMultiStateT = runMultiStateTAS
 runMultiStateTA  :: HList s -> MultiStateT s m a -> m a
 runMultiStateTAS :: HList s -> MultiStateT s m a -> m (a, s)
 runMultiStateTSA :: HList s -> MultiStateT s m a -> m (s, a)
@@ -122,19 +122,21 @@ runMultiStateT_  :: HList s -> MultiStateT s m a -> m ()
 runMultiStateTNil  :: MultiStateT '[] m a -> m a
 runMultiStateTNil_ :: MultiStateT '[] m a -> m ()
 
-withMultiState = withStateAS
+withMultiState = withMultiStateAS
 withMultiStateA  :: s -> MultiStateT (s ': ss) m a -> MultiStateT ss m a
 withMultiStateAS :: s -> MultiStateT (s ': ss) m a -> MultiStateT ss m (a, s)
 withMultiStateSA :: s -> MultiStateT (s ': ss) m a -> MultiStateT ss m (s, a)
 withMultiStateS  :: s -> MultiStateT (s ': ss) m a -> MultiStateT ss m s
 withMultiState_  :: s -> MultiStateT (s ': ss) m a -> MultiStateT ss m ()
 
-withMultiStates = withStatesAS
+withMultiStates = withMultiStatesAS
 withMultiStatesAS :: HList s1 -> MultiStateT (Append s1 s2) m a -> MultiStateT s2 m (a, HList s1)
 withMultiStatesSA :: HList s1 -> MultiStateT (Append s1 s2) m a -> MultiStateT s2 m (HList s1, a)
 withMultiStatesA  :: HList s1 -> MultiStateT (Append s1 s2) m a -> MultiStateT s2 m a
 withMultiStatesS  :: HList s1 -> MultiStateT (Append s1 s2) m a -> MultiStateT s2 m (HList s1)
 withMultiStates_  :: HList s1 -> MultiStateT (Append s1 s2) m a -> MultiStateT s2 m ()
+
+withoutMultiState :: MultiStateT ss m a -> MultiStateT (s ': ss) m a
 ~~~~
 
 ## Known Deficits

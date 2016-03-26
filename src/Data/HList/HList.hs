@@ -62,6 +62,9 @@ instance (Eq x, Eq (HList xs))
     x1 :+: xr1 == x2 :+: xr2 = x1==x2 && xr1==xr2
     x1 :+: xr1 /= x2 :+: xr2 = x1/=x2 || xr1/=xr2
 
+-- cannot use the closed variant because of ghc-7.8.4.
+-- (was not investigated more closely; there simply
+--  is some syntax error for code which works fine with ghc-7.10.)
 type family Append (l1::[*]) (l2::[*]) :: [*]
 type instance Append '[] l2 = l2
 type instance Append (car1 ': cdr2) l2 = car1 ': Append cdr2 l2
