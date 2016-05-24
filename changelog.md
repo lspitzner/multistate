@@ -1,5 +1,9 @@
 # Changelog for [`multistate` package](https://hackage.haskell.org/package/multistate)
 
+## 0.7.1.1 *May 2016*
+
+  * Adapt for ghc-8
+
 ## 0.7.1.0 *March 2016*
 
   * Add new method `withoutMultiFoo`, inverse of `withMultiFoo`
