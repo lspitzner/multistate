@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -197,7 +198,9 @@ lazyStateTest = it "lazyStateTest" $ (33, True) `shouldBe` l
     l :: (Int, Bool)
     l = case runIdentity $ MS.runMultiStateTS ([] :+: [] :+: HNil) action of
       (x :+: y :+: _) -> (head x, head y)
+#if !MIN_VERSION_base(4,9,0)
       _ -> error "some ghc versions think that above is not exhaustive."
+#endif
     action :: MS.MultiStateT '[[Int], [Bool]] Identity ()
     action = do
       action
