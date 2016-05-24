@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 -- | The multi-valued version of mtl's State / StateT
 module Control.Monad.Trans.MultiState.Lazy
   (
@@ -135,7 +137,11 @@ instance Monad m => Monad (MultiStateT x m) where
 instance MonadTrans (MultiStateT x) where
   lift = MultiStateT . lift
 
+#if MIN_VERSION_base(4,8,0)
+instance {-# OVERLAPPING #-} (Monad m, ContainsType a c)
+#else
 instance (Monad m, ContainsType a c)
+#endif
       => MonadMultiState a (MultiStateT c m) where
   mSet v = MultiStateT $ get >>= put . setHListElem v
   mGet = MultiStateT $ liftM getHListElem get

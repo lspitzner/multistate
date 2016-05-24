@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -125,7 +126,11 @@ instance Monad m => Monad (MultiWriterT x m) where
 instance MonadTrans (MultiWriterT x) where
   lift = MultiWriterT . lift
 
+#if MIN_VERSION_base(4,8,0)
+instance {-# OVERLAPPING #-} (Monad m, ContainsType a c, Monoid a)
+#else
 instance (Monad m, ContainsType a c, Monoid a)
+#endif
       => MonadMultiWriter a (MultiWriterT c m) where
   mTell v = MultiWriterT $ do
     x <- get

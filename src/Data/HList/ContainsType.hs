@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 -- | Class to provide type-driven access to elements of a HList
 module Data.HList.ContainsType
   ( ContainsType(..)
@@ -14,7 +16,11 @@ class ContainsType a c where
   setHListElem :: a -> HList c -> HList c
   getHListElem :: HList c -> a
 
+#if MIN_VERSION_base(4,8,0)
+instance {-# OVERLAPPING #-} ContainsType a (a ': xs) where
+#else
 instance ContainsType a (a ': xs) where
+#endif
   setHListElem a xs = a :+: case xs of (_ :+: xr) -> xr
   getHListElem (x :+: _) = x
 

@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE DataKinds #-}
@@ -82,7 +83,11 @@ instance HInit '[] where
   hSplit l = (HNil, l)
 instance HInit l1 => HInit (x ': l1) where
   hInit p (x :+: xs)  = x :+: hInit p xs
+#if !MIN_VERSION_base(4,9,0)
   hInit _ _           = error "cannot happen" -- see ghc trac #3927
+#endif
   hSplit (x :+: xs) = let (l1, l2) = hSplit xs
                        in (x :+: l1, l2)
+#if !MIN_VERSION_base(4,9,0)
   hSplit _          = error "cannot happen"
+#endif

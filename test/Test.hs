@@ -2,6 +2,7 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs #-}
+{-# OPTIONS_GHC -fno-warn-unused-imports #-}
 
 module Main where
 
@@ -196,6 +197,7 @@ lazyStateTest = it "lazyStateTest" $ (33, True) `shouldBe` l
     l :: (Int, Bool)
     l = case runIdentity $ MS.runMultiStateTS ([] :+: [] :+: HNil) action of
       (x :+: y :+: _) -> (head x, head y)
+      _ -> error "some ghc versions think that above is not exhaustive."
     action :: MS.MultiStateT '[[Int], [Bool]] Identity ()
     action = do
       action

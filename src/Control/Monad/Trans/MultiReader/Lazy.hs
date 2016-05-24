@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 -- | The multi-valued version of mtl's Reader / ReaderT
 module Control.Monad.Trans.MultiReader.Lazy
   (
@@ -117,7 +119,11 @@ instance Monad m => Monad (MultiReaderT x m) where
 instance MonadTrans (MultiReaderT x) where
   lift = MultiReaderT . lift
 
+#if MIN_VERSION_base(4,8,0)
+instance {-# OVERLAPPING #-} (Monad m, ContainsType a c)
+#else
 instance (Monad m, ContainsType a c)
+#endif
       => MonadMultiReader a (MultiReaderT c m) where
   mAsk = MultiReaderT $ liftM getHListElem get
 
