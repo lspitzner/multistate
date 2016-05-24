@@ -65,9 +65,9 @@ library {
     Control.Monad.Trans.MultiRWS.Strict
   other-modules:
   build-depends:
-    base         >= 4.6   && <4.9,
+    base         >= 4.6   && <4.10,
     mtl          >= 2.1   && <2.3,
-    transformers >= 0.3   && <0.5,
+    transformers >= 0.3   && <0.6,
     tagged       >= 0.7   && <0.9,
     transformers-base <0.5,
     monad-control >= 1.0  && <1.1
@@ -99,8 +99,8 @@ test-suite multistate-test {
     -- no version constraints necessary, because they are already
     -- given by library
     multistate,
-    base <4.9,
-    transformers <0.5,
+    base <4.10,
+    transformers <0.6,
     hspec <2.3
   ghc-options:      -Wall
   main-is:          Test.hs
@@ -116,9 +116,9 @@ executable multistate-example {
       -- no version constraints necessary, because they are already
       -- given by library
       multistate,
-      base <4.9,
+      base <4.10,
       mtl <2.3,
-      transformers <0.5
+      transformers <0.6
   } else {
     buildable: False
   }
