@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE BangPatterns #-}
 
 -- | The multi-valued version of mtl's RWS / RWST
 module Control.Monad.Trans.MultiRWS.Strict
@@ -156,7 +157,8 @@ instance (Monad m, ContainsType a w, Monoid a)
       => MonadMultiWriter a (MultiRWST r w s m) where
   mTell v = MultiRWST $ do
     (r,w,s) <- get
-    put $ (r, setHListElem (getHListElem w `mappend` v) w, s)
+    let !x' = getHListElem w `mappend` v
+    put $ (r, setHListElem x' w, s)
 
 #if MIN_VERSION_base(4,8,0)
 instance {-# OVERLAPPING #-} (Monad m, ContainsType a s)
@@ -164,7 +166,7 @@ instance {-# OVERLAPPING #-} (Monad m, ContainsType a s)
 instance (Monad m, ContainsType a s)
 #endif
       => MonadMultiState a (MultiRWST r w s m) where
-  mSet v = MultiRWST $ do
+  mSet !v = MultiRWST $ do
     (r,w,s) <- get
     put (r, w, setHListElem v s)
   mGet = MultiRWST $ do
