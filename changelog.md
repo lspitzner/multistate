@@ -1,5 +1,11 @@
 # Changelog for [`multistate` package](https://hackage.haskell.org/package/multistate)
 
+** 0.7.1.2 *August 2017*
+
+  * Adapt for ghc-8.2
+  
+  * Minor strictness fix for MultiRWS
+
 ## 0.7.1.1 *May 2016*
 
   * Adapt for ghc-8
