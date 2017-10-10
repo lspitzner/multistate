@@ -39,6 +39,7 @@ source-repository head {
 flag build-example
   description: Build the MultiState-example example program
   default: False
+  manual: True
 
 library {
   default-language:
