@@ -1,5 +1,14 @@
 # Changelog for [`multistate` package](https://hackage.haskell.org/package/multistate)
 
+** 0.8.0.0 *April 2018*
+
+  * Adapt for ghc-8.4
+  * Drop support for ghc<8.0
+  * Add class `MonadMultiGet` that roughly translates to "any read access"
+    (instances for Reader and State)
+  * Add data-type `MultiGST` that has a single taggified HList instead of the
+    three r, w, s lists with `MultiRWS`
+
 ** 0.7.1.2 *August 2017*
 
   * Adapt for ghc-8.2
