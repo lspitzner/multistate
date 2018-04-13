@@ -8,6 +8,7 @@ module Control.Monad.Trans.MultiRWS
   -- * MonadMulti classes
   , MonadMultiReader(..)
   , MonadMultiWriter(..)
+  , MonadMultiGet(..)
   , MonadMultiState(..)
   -- * run-functions (extracting from RWST)
   , runMultiRWST

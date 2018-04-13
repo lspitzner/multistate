@@ -7,6 +7,7 @@ module Control.Monad.Trans.MultiState
   , MultiStateTNull
   , MultiState
   -- * MonadMultiState class
+  , MonadMultiGet(..)
   , MonadMultiState(..)
   -- * run-functions
   , runMultiStateT

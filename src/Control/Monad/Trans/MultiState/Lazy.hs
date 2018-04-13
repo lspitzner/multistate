@@ -8,6 +8,7 @@ module Control.Monad.Trans.MultiState.Lazy
   , MultiStateTNull
   , MultiState
   -- * MonadMultiState class
+  , MonadMultiGet(..)
   , MonadMultiState(..)
   -- * run-functions
   , runMultiStateT
@@ -142,9 +143,16 @@ instance {-# OVERLAPPING #-} (Monad m, ContainsType a c)
 #else
 instance (Monad m, ContainsType a c)
 #endif
+      => MonadMultiGet a (MultiStateT c m) where
+  mGet = MultiStateT $ liftM getHListElem get
+
+#if MIN_VERSION_base(4,8,0)
+instance {-# OVERLAPPING #-} (Monad m, ContainsType a c)
+#else
+instance (Monad m, ContainsType a c)
+#endif
       => MonadMultiState a (MultiStateT c m) where
   mSet v = MultiStateT $ get >>= put . setHListElem v
-  mGet = MultiStateT $ liftM getHListElem get
 
 instance MonadFix m => MonadFix (MultiStateT s m) where
   mfix f = MultiStateT $ mfix (runMultiStateTRaw . f)

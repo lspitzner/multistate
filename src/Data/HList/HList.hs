@@ -9,8 +9,8 @@
 
 -- | A GADT HList implementation
 --
--- Probably exists somewhere else already, but why add a dependency
--- for something so simple.
+-- There exist other implementations of HList on hackage, but none seem to
+-- be reliably maintained.
 module Data.HList.HList
   ( HList(..)
   , Append

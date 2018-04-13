@@ -12,7 +12,6 @@ import Control.Monad.Trans.Class  ( MonadTrans
                                   , lift )
 
 
-
 -- | All methods must be defined.
 --
 -- The idea is: Any monad stack is instance of @MonadMultiReader a@, iff

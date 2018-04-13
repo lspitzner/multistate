@@ -50,6 +50,7 @@ library {
     Control.Monad.MultiState
     Control.Monad.MultiReader
     Control.Monad.MultiWriter
+    Control.Monad.Trans.MultiGet.Class
     Control.Monad.Trans.MultiReader
     Control.Monad.Trans.MultiReader.Class
     Control.Monad.Trans.MultiReader.Lazy
@@ -65,7 +66,11 @@ library {
     Control.Monad.Trans.MultiRWS
     Control.Monad.Trans.MultiRWS.Lazy
     Control.Monad.Trans.MultiRWS.Strict
+    Control.Monad.Trans.MultiGST
+    Control.Monad.Trans.MultiGST.Lazy
+    Control.Monad.Trans.MultiGST.Strict
   other-modules:
+    Control.Monad.Trans.MultiGST.Common
   build-depends:
     base         >= 4.6   && <4.11,
     mtl          >= 2.1   && <2.3,

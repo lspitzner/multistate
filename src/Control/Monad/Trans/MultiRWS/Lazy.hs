@@ -13,6 +13,7 @@ module Control.Monad.Trans.MultiRWS.Lazy
   -- * MonadMulti classes
   , MonadMultiReader(..)
   , MonadMultiWriter(..)
+  , MonadMultiGet(..)
   , MonadMultiState(..)
   -- * run-functions (extracting from RWST)
   , runMultiRWST
@@ -75,7 +76,7 @@ import Data.HList.ContainsType
 
 import Control.Monad.Trans.MultiReader.Class ( MonadMultiReader(..) )
 import Control.Monad.Trans.MultiWriter.Class ( MonadMultiWriter(..) )
-import Control.Monad.Trans.MultiState.Class  ( MonadMultiState(..) )
+import Control.Monad.Trans.MultiState.Class
 import Control.Monad.Trans.MultiReader.Lazy  ( MultiReaderT(..)
                                              , runMultiReaderT )
 import Control.Monad.Trans.MultiWriter.Lazy  ( MultiWriterT(..)
@@ -140,36 +141,43 @@ instance (Monad m) => Monad (MultiRWST r w s m) where
 instance MonadTrans (MultiRWST r w s) where
   lift = MultiRWST . lift
 
+instance
 #if MIN_VERSION_base(4,8,0)
-instance {-# OVERLAPPING #-} (Monad m, ContainsType a r)
-#else
-instance (Monad m, ContainsType a r)
+  {-# OVERLAPPING #-}
 #endif
+    (Monad m, ContainsType a r)
       => MonadMultiReader a (MultiRWST r w s m) where
   mAsk = MultiRWST $ liftM (\(r,_,_) -> getHListElem r) get
 
+instance
 #if MIN_VERSION_base(4,8,0)
-instance {-# OVERLAPPING #-} (Monad m, ContainsType a w, Monoid a)
-#else
-instance (Monad m, ContainsType a w, Monoid a)
+  {-# OVERLAPPING #-}
 #endif
+    (Monad m, ContainsType a w, Monoid a)
       => MonadMultiWriter a (MultiRWST r w s m) where
   mTell v = MultiRWST $ do
     ~(r,w,s) <- get
     put $ (r, setHListElem (getHListElem w `mappend` v) w, s)
 
+instance
 #if MIN_VERSION_base(4,8,0)
-instance {-# OVERLAPPING #-} (Monad m, ContainsType a s)
-#else
-instance (Monad m, ContainsType a s)
+  {-# OVERLAPPING #-}
 #endif
+    (Monad m, ContainsType a s)
+      => MonadMultiGet a (MultiRWST r w s m) where
+  mGet = MultiRWST $ do
+    ~(_,_,s) <- get
+    return $ getHListElem s
+
+instance
+#if MIN_VERSION_base(4,8,0)
+  {-# OVERLAPPING #-}
+#endif
+    (Monad m, ContainsType a s)
       => MonadMultiState a (MultiRWST r w s m) where
   mSet v = MultiRWST $ do
     ~(r,w,s) <- get
     put (r, w, setHListElem v s)
-  mGet = MultiRWST $ do
-    ~(_,_,s) <- get
-    return $ getHListElem s
 
 instance MonadFix m => MonadFix (MultiRWST r w s m) where
   mfix f = MultiRWST $ mfix (runMultiRWSTRaw . f)
@@ -413,9 +421,9 @@ inflateMultiWriter k = do
   ~(x, w) <- lift $ runMultiWriterT k
   mPutRawW w
   return x
-inflateState :: (Monad m, ContainsType s ss)
+inflateState :: (Monad m, MonadMultiState s (t m), MonadTrans t)
              => StateT s m a
-             -> MultiRWST r w ss m a
+             -> t m a
 inflateState k = do
   s <- mGet
   ~(x, s') <- lift $ runStateT k s

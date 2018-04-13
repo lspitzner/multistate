@@ -8,6 +8,7 @@ module Control.Monad.Trans.MultiState.Strict
   , MultiStateTNull
   , MultiState
   -- * MonadMultiState class
+  , MonadMultiGet(..)
   , MonadMultiState(..)
   -- * run-functions
   , runMultiStateT
@@ -49,8 +50,6 @@ module Control.Monad.Trans.MultiState.Strict
 import Data.HList.HList
 import Data.HList.ContainsType
 
-import Control.Monad.Trans.MultiState.Class
-
 import Control.Monad.State.Strict      ( StateT(..)
                                        , MonadState(..)
                                        , evalStateT
@@ -65,6 +64,8 @@ import Control.Monad.Writer.Class      ( MonadWriter
                                        , tell
                                        , writer
                                        , pass )
+import Control.Monad.Trans.MultiState.Class
+
 
 import Data.Functor.Identity           ( Identity )
 
@@ -140,9 +141,16 @@ instance {-# OVERLAPPING #-} (Monad m, ContainsType a c)
 #else
 instance (Monad m, ContainsType a c)
 #endif
+      => MonadMultiGet a (MultiStateT c m) where
+  mGet = MultiStateT $ liftM getHListElem get
+
+#if MIN_VERSION_base(4,8,0)
+instance {-# OVERLAPPING #-} (Monad m, ContainsType a c)
+#else
+instance (Monad m, ContainsType a c)
+#endif
       => MonadMultiState a (MultiStateT c m) where
   mSet v = MultiStateT $ get >>= put . setHListElem v
-  mGet = MultiStateT $ liftM getHListElem get
 
 instance MonadFix m => MonadFix (MultiStateT s m) where
   mfix f = MultiStateT $ mfix (runMultiStateTRaw . f)

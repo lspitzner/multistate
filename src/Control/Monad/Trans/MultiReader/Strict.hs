@@ -9,6 +9,7 @@ module Control.Monad.Trans.MultiReader.Strict
   , MultiReader
   -- * MonadMultiReader class
   , MonadMultiReader(..)
+  , MonadMultiGet(..)
   -- * run-functions
   , runMultiReaderT
   , runMultiReaderT_
@@ -35,7 +36,8 @@ module Control.Monad.Trans.MultiReader.Strict
 import Data.HList.HList
 import Data.HList.ContainsType
 
-import Control.Monad.Trans.MultiReader.Class ( MonadMultiReader(..) )
+import Control.Monad.Trans.MultiReader.Class
+import Control.Monad.Trans.MultiState.Class
 
 import Control.Monad.State.Strict      ( StateT(..)
                                        , MonadState(..)
@@ -126,6 +128,14 @@ instance (Monad m, ContainsType a c)
 #endif
       => MonadMultiReader a (MultiReaderT c m) where
   mAsk = MultiReaderT $ liftM getHListElem get
+
+#if MIN_VERSION_base(4,8,0)
+instance {-# OVERLAPPING #-} (Monad m, ContainsType a c)
+#else
+instance (Monad m, ContainsType a c)
+#endif
+      => MonadMultiGet a (MultiReaderT c m) where
+  mGet = MultiReaderT $ liftM getHListElem get
 
 instance MonadFix m => MonadFix (MultiReaderT r m) where
   mfix f = MultiReaderT $ mfix (runMultiReaderTRaw . f)
