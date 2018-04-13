@@ -84,10 +84,6 @@ library {
     UndecidableInstances
     TypeOperators
     DataKinds
-  if impl(ghc < 7.10) {
-    default-extensions:
-      OverlappingInstances
-  }
   ghc-options: {
     -Wall
     -fno-warn-unused-imports
