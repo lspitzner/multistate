@@ -22,7 +22,8 @@ module Data.HList.HList
 
 import Prelude hiding (reverse)
 
-import Data.Monoid
+import Data.Monoid (Monoid, mappend, mempty)
+import Data.Semigroup
 
 import Data.Proxy
 
@@ -42,10 +43,16 @@ instance Show (HList '[]) where
 instance (Show a, Show (HList b)) => Show (HList (a ': b)) where
   show (x :+: y) = "(" ++ show x ++ ":+:" ++ show y ++ ")"
 
+instance Semigroup (HList '[]) where
+  _ <> _ = HNil
+instance (Semigroup x, Semigroup (HList xs))
+      => Semigroup (HList (x ': xs))
+  where
+    (x1 :+: xs1) <> (x2 :+: xs2) = (x1 <> x2) :+: (xs1 <> xs2)
+
 instance Monoid (HList '[]) where
   mempty = HNil
   mappend _ _ = HNil
-
 instance (Monoid x, Monoid (HList xs))
       => Monoid (HList (x ': xs))
   where

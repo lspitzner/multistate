@@ -25,6 +25,7 @@ where
 
 
 
+import Data.Semigroup
 import qualified Data.HList.HList as HList
 
 import Control.Monad.Trans.MultiReader.Class
@@ -125,6 +126,9 @@ data HListM :: [CanReadWrite *] -> * where
   (:+-:) :: x -> HListM xr -> HListM ('Gettable x ': xr)
   (:++:) :: x -> HListM xr -> HListM ('Settable x ': xr)
   (:-+:) :: x -> HListM xr -> HListM ('Tellable x ': xr)
+
+instance Semigroup (HListM '[]) where
+  _ <> _ = HNilM
 
 instance Monoid (HListM '[]) where
   mempty = HNilM
