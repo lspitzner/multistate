@@ -4,3 +4,5 @@ dist-newstyle/
 cabal.sandbox.config
 README.pdf
 .stack-work/
+.ghc.environment.*
+cabal.project.local
