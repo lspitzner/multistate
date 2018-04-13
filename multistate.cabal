@@ -4,7 +4,7 @@ Cabal-Version: >= 1.10
 Build-Type:    Simple
 license:       BSD3
 license-file:  LICENSE
-Copyright:     Copyright (C) 2013-2017 Jan Bracker, 2013-2016 Lennart Spitzner
+Copyright:     Copyright (C) 2013 Jan Bracker, 2013-2018 Lennart Spitzner
 Maintainer:    Lennart Spitzner <hexagoxel@hexagoxel.de>
 Author:        Jan Bracker, Lennart Spitzner
 Homepage:      https://github.com/lspitzner/multistate
