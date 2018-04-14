@@ -106,7 +106,7 @@ test-suite multistate-test {
     multistate,
     base <999,
     transformers <0.6,
-    hspec >=2 && <2.5
+    hspec >=2 && <2.6
   ghc-options:      -Wall
   main-is:          Test.hs
   hs-source-dirs:   test
