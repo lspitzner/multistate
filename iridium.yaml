@@ -62,7 +62,9 @@ checks:
       - compiler: ghc
         version: 8.2.2
       - compiler: ghc
-        version: 8.4.1
+        version: 8.4.3
+      - compiler: ghc
+        version: 8.6.1
   documentation:
     enabled: True
 
