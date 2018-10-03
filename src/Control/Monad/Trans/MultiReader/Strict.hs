@@ -186,9 +186,8 @@ withMultiReaders_ HNil       = liftM (const ())
 withMultiReaders_ (x :+: xs) = withMultiReaders_ xs . withMultiReader_ x
 
 withoutMultiReader :: Monad m => MultiReaderT rs m a -> MultiReaderT (r ': rs) m a
-withoutMultiReader k = MultiReaderT $ do
-  _ :+: rr <- get
-  lift $ runMultiReaderT rr k
+withoutMultiReader k = MultiReaderT $ get >>= \case
+  (_ :+: rr) -> lift $ runMultiReaderT rr k
 
 inflateReader :: (Monad m, ContainsType r rs)
               => ReaderT r m a

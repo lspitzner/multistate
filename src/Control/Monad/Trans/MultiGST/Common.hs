@@ -132,7 +132,7 @@ instance Semigroup (HListM '[]) where
 
 instance Monoid (HListM '[]) where
   mempty = HNilM
-  mappend _ _ = HNilM
+  mappend = (<>)
 
 instance Eq (HListM '[]) where
   HNilM == HNilM = True

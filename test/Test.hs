@@ -12,6 +12,8 @@ module Main where
 import Data.Functor.Identity
 import Data.HList.HList
 import Data.Monoid
+import Data.Semigroup
+
 import qualified Control.Monad.Trans.MultiState as MS
 import qualified Control.Monad.Trans.MultiReader as MR
 import qualified Control.Monad.Trans.MultiWriter as MW
@@ -35,7 +37,7 @@ runnerMS :: a -> MS.MultiStateT '[a] Identity a -> a
 runnerMS x m = runEvalMS $ MS.withMultiStateA x m
 runnerMR :: a -> MR.MultiReaderT '[a] Identity a -> a
 runnerMR x m = runEvalMR $ MR.withMultiReader x m
-runnerMW :: Monoid a => MW.MultiWriterT '[a] Identity b -> a
+runnerMW :: (Semigroup a, Monoid a) => MW.MultiWriterT '[a] Identity b -> a
 runnerMW m = case runExecMW m of (x :+: _) -> x
 -- TODO: ghc bug?: warning on:
 -- runnerMW m = case runExecMW m of (x :+: HNil) -> x

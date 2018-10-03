@@ -52,13 +52,12 @@ instance (Semigroup x, Semigroup (HList xs))
 
 instance Monoid (HList '[]) where
   mempty = HNil
-  mappend _ _ = HNil
-instance (Monoid x, Monoid (HList xs))
+  mappend = (<>)
+instance (Semigroup x, Monoid x, Semigroup (HList xs), Monoid (HList xs))
       => Monoid (HList (x ': xs))
   where
     mempty = mempty :+: mempty
-    mappend (x1 :+: xs1) (x2 :+: xs2) = (x1 `mappend` x2)
-                                    :+: (xs1 `mappend` xs2)
+    mappend = (<>)
 
 instance Eq (HList '[]) where
   HNil == HNil = True

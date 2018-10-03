@@ -36,6 +36,7 @@ checks:
     enabled: True
   compiler-warnings:
     enabled: True
+    enable-compat: True
     # whitelist: [only, these, tests] # not supported yet
     # blacklist: [omit, these, tests] # not supported yet
   # if you are completely unlucky, this might _overwrite_

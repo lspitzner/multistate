@@ -239,11 +239,11 @@ withMultiStates_  HNil       = liftM (const ())
 withMultiStates_ (x :+: xs)  = withMultiStates_ xs . withMultiState_ x
 
 withoutMultiState :: (Functor m, Monad m) => MultiStateT ss m a -> MultiStateT (s ': ss) m a
-withoutMultiState k = MultiStateT $ do
-  s :+: sr <- get
-  ~(a, sr') <- lift $ runMultiStateT sr k
-  put (s :+: sr')
-  return a
+withoutMultiState k = MultiStateT $ get >>= \case
+  s :+: sr -> do
+    ~(a, sr') <- lift $ runMultiStateT sr k
+    put (s :+: sr')
+    return a
 
 inflateState :: (Monad m, ContainsType s ss)
              => StateT s m a

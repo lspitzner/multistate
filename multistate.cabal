@@ -84,6 +84,7 @@ library {
     UndecidableInstances
     TypeOperators
     DataKinds
+    LambdaCase
   ghc-options: {
     -Wall
     -fno-warn-unused-imports
