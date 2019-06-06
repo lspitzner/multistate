@@ -25,6 +25,7 @@ where
 
 
 
+import Data.Kind (Type)
 import Data.Semigroup
 import qualified Data.HList.HList as HList
 
@@ -121,7 +122,7 @@ type family CanWriteConstraint (f :: CanReadWriteFlag) :: Constraint where
   CanWriteConstraint 'TellableFlag = ()
   CanWriteConstraint 'SettableFlag = ()
 
-data HListM :: [CanReadWrite *] -> * where
+data HListM :: [CanReadWrite Type] -> Type where
   HNilM :: HListM '[]
   (:+-:) :: x -> HListM xr -> HListM ('Gettable x ': xr)
   (:++:) :: x -> HListM xr -> HListM ('Settable x ': xr)
@@ -154,20 +155,20 @@ instance (Eq x, Eq (HListM xs))
     x1 :++: xr1 == x2 :++: xr2 = x1==x2 && xr1==xr2
     x1 :++: xr1 /= x2 :++: xr2 = x1/=x2 || xr1/=xr2
 
-type family AppendM (l1 :: [CanReadWrite *]) (l2 :: [CanReadWrite *]) :: [CanReadWrite *] where
+type family AppendM (l1 :: [CanReadWrite Type]) (l2 :: [CanReadWrite Type]) :: [CanReadWrite Type] where
   AppendM '[] l2 = l2
   AppendM (car1 ': cdr2) l2 = car1 ': AppendM cdr2 l2
 
-type family HListMReaders (l :: [*]) :: [CanReadWrite *] where
+type family HListMReaders (l :: [Type]) :: [CanReadWrite Type] where
   HListMReaders '[] = '[]
   HListMReaders (t ': tr) = 'Gettable t ': HListMReaders tr
 
-type family AppendMReaders (l1 :: [*]) (l2 :: [CanReadWrite *]) :: [CanReadWrite *] where
+type family AppendMReaders (l1 :: [Type]) (l2 :: [CanReadWrite Type]) :: [CanReadWrite Type] where
   AppendMReaders '[] l2 = l2
   AppendMReaders (t ': tr) l2 = 'Gettable t ': AppendMReaders tr l2
 
 class HListMGettableClass ts where
-  type HListMGettableOnly ts :: [*]
+  type HListMGettableOnly ts :: [Type]
   hListMGettableOnly :: HListM ts -> HList.HList (HListMGettableOnly ts)
 
 instance HListMGettableClass '[] where

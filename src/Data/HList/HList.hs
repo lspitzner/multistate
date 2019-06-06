@@ -22,6 +22,7 @@ module Data.HList.HList
 
 import Prelude hiding (reverse)
 
+import Data.Kind (Type)
 import Data.Monoid (Monoid, mappend, mempty)
 import Data.Semigroup
 
@@ -29,7 +30,7 @@ import Data.Proxy
 
 
 
-data HList :: [*] -> * where
+data HList :: [Type] -> Type where
   HNil :: HList '[]
   (:+:) :: x -> HList xs -> HList (x ': xs)
   -- TCons :: x -> HList xs -> HList (Cons x xs)
@@ -72,7 +73,7 @@ instance (Eq x, Eq (HList xs))
 -- cannot use the closed variant because of ghc-7.8.4.
 -- (was not investigated more closely; there simply
 --  is some syntax error for code which works fine with ghc-7.10.)
-type family Append (l1::[*]) (l2::[*]) :: [*]
+type family Append (l1::[Type]) (l2::[Type]) :: [Type]
 type instance Append '[] l2 = l2
 type instance Append (car1 ': cdr2) l2 = car1 ': Append cdr2 l2
 
@@ -80,7 +81,7 @@ hAppend :: HList ts1 -> HList ts2 -> HList (Append ts1 ts2)
 hAppend HNil l = l
 hAppend (x:+:xs) l = x :+: hAppend xs l
 
-class HInit (l1 :: [*]) where
+class HInit (l1 :: [Type]) where
   hInit :: forall l2 . Proxy l2 -> HList (Append l1 l2) -> HList l1
   hSplit :: forall l2 . HList (Append l1 l2) -> (HList l1, HList l2)
 
