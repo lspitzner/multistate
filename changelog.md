@@ -1,5 +1,10 @@
 # Changelog for [`multistate` package](https://hackage.haskell.org/package/multistate)
 
+## 0.8.0.2 *June 2019*
+
+  * Adapt for ghc-8.8 (optimistically; QuickCheck does not build so
+    tests are untested)
+
 ## 0.8.0.1 *October 2018*
 
   * Adapt for ghc-8.6 (really, this time)
