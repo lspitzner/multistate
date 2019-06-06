@@ -87,6 +87,7 @@ library {
     LambdaCase
   ghc-options: {
     -Wall
+    -Wcompat
     -fno-warn-unused-imports
   }
   if impl(ghc > 8.0) {
