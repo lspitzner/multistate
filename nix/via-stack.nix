@@ -4,34 +4,39 @@
 }:
 let
   # package-desc = import ./plan.nix;
-  # package-desc = import (
-  #   pkgs.haskell-nix.callCabalToNix2 {
-  #     name = "multistate";
-  #     cabal-file = ./../multistate.cabal;
-  #   }
-  # );
   # multistate-plan = {
   #   inherit resolver;
   #   extras = hackage:
-  #     { multistate = package-desc; };
+  #     { multistate = args: package-desc args // {
+  #       src = pkgs.haskell-nix.cleanSourceHaskell {
+  #         src = pkgs.haskell-nix.haskellLib.cleanGit { src = ./..; name = "multistate"; };
+  #         name = "multistate";
+  #       };
+  #     };
+  #   };
   # };
-  multistate-plan = (pkgs.haskell-nix.importAndFilterProject (
-    (pkgs.haskell-nix.callStackToNix {
-      name = "multistate-plan";
-      src = ./..;
-      stackYaml = builtins.toFile "stack.yaml" ''
-        resolver: ${resolver}
-        packages:
-          - '.'
-        extra-deps: []
-        extra-package-dbs: []
-      '';
-      ignorePackageYaml = true;
-    })
-  ));
+  # this does not work at all, does not use local package (!)
+  # multistate-plan = (pkgs.haskell-nix.importAndFilterProject (
+  #   (pkgs.haskell-nix.callStackToNix {
+  #     name = "multistate-plan";
+  #     src = ./..;
+  #     stackYamlFile = builtins.toFile "stack.yaml" ''
+  #       resolver: ${resolver}
+  #       packages:
+  #         - '.'
+  #       extra-deps: []
+  #       extra-package-dbs: []
+  #     '';
+  #     ignorePackageYaml = true;
+  #   })
+  # ));
+  multistate-plan = pkgs.haskell-nix.cabalFileToStackagePlan {
+    name = "multistate";
+    src = pkgs.haskell-nix.haskellLib.cleanGit { name = "multistate"; src = ./..; };
+    inherit resolver;
+  };
   hsPkgs = (pkgs.haskell-nix.mkStackPkgSet {
-    # src = pkgs.haskell-nix.haskellLib.cleanGit { src = ./.; name = "multistate"; };
-    stack-pkgs = multistate-plan.pkgs;
+    stack-pkgs = multistate-plan;
     pkg-def-extras = pkg-def-extras;
     modules = [
     ];

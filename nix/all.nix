@@ -45,12 +45,12 @@ in
 versions // {
   default = versions."stack-8.8";
   test-all = pkgs.linkFarm "multistate-test-all" [
-    { name = "stack-8.4"; path = versions."stack-8.4".tests; }
-    { name = "stack-8.6"; path = versions."stack-8.6".tests; }
-    { name = "stack-8.8"; path = versions."stack-8.8".tests; }
-    { name = "cabal-8.4"; path = versions."cabal-8.4".tests; }
-    { name = "cabal-8.6"; path = versions."cabal-8.6".tests; }
-    { name = "cabal-8.8"; path = versions."cabal-8.8".tests; }
+    { name = "stack-8.04"; path = versions."stack-8.4".tests; }
+    { name = "stack-8.06"; path = versions."stack-8.6".tests; }
+    { name = "stack-8.08"; path = versions."stack-8.8".tests; }
+    { name = "cabal-8.04"; path = versions."cabal-8.4".tests; }
+    { name = "cabal-8.06"; path = versions."cabal-8.6".tests; }
+    { name = "cabal-8.08"; path = versions."cabal-8.8".tests; }
     { name = "cabal-8.10"; path = versions."cabal-8.10".tests; }
   ];
 }
