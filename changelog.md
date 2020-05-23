@@ -1,5 +1,11 @@
 # Changelog for [`multistate` package](https://hackage.haskell.org/package/multistate)
 
+## 0.8.0.3 *May 2020*
+
+  * Adapt for ghc-8.10
+  * Add nix-expressions for testing against different ghc versions
+  * Drop support for ghc < 8.4
+
 ## 0.8.0.2 *June 2019*
 
   * Adapt for ghc-8.8 (optimistically; QuickCheck does not build so

@@ -1,5 +1,5 @@
 Name:          multistate
-Version:       0.8.0.2
+Version:       0.8.0.3
 Cabal-Version: >= 1.10
 Build-Type:    Simple
 license:       BSD3
@@ -11,7 +11,6 @@ Homepage:      https://github.com/lspitzner/multistate
 Bug-reports:   https://github.com/lspitzner/multistate/issues
 Stability:     Experimental
 category:      Control
-tested-with:   GHC == 7.6.3, GHC == 7.8.4, GHC == 7.10.3, GHC == 8.0.1
 
 Synopsis: like mtl's ReaderT / WriterT / StateT, but more than one
           contained value/type.
