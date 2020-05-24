@@ -5,8 +5,8 @@ then
 else
 let
   versions = {
-    "stack-8.0" = import ./via-stack.nix (args // { resolver = "lts-9.21"; });
-    "stack-8.2" = import ./via-stack.nix (args // { resolver = "lts-11.22"; });
+    # "stack-8.0" = import ./via-stack.nix (args // { resolver = "lts-9.21"; });
+    # "stack-8.2" = import ./via-stack.nix (args // { resolver = "lts-11.22"; });
     "stack-8.4" = import ./via-stack.nix (args // { resolver = "lts-12.26"; });
     "stack-8.6" = import ./via-stack.nix (args // { resolver = "lts-14.27"; });
     "stack-8.8" = import ./via-stack.nix (args // { resolver = "lts-15.12"; });
@@ -45,12 +45,32 @@ in
 versions // {
   default = versions."stack-8.8";
   test-all = pkgs.linkFarm "multistate-test-all" [
-    { name = "stack-8.04"; path = versions."stack-8.4".tests; }
-    { name = "stack-8.06"; path = versions."stack-8.6".tests; }
-    { name = "stack-8.08"; path = versions."stack-8.8".tests; }
-    { name = "cabal-8.04"; path = versions."cabal-8.4".tests; }
-    { name = "cabal-8.06"; path = versions."cabal-8.6".tests; }
-    { name = "cabal-8.08"; path = versions."cabal-8.8".tests; }
-    { name = "cabal-8.10"; path = versions."cabal-8.10".tests; }
+    { name = "stack-8.04"; path = versions."stack-8.4".tests.multistate-test; }
+    { name = "stack-8.06"; path = versions."stack-8.6".tests.multistate-test; }
+    { name = "stack-8.08"; path = versions."stack-8.8".tests.multistate-test; }
+    { name = "cabal-8.04"; path = versions."cabal-8.4".tests.multistate-test; }
+    { name = "cabal-8.06"; path = versions."cabal-8.6".tests.multistate-test; }
+    { name = "cabal-8.08"; path = versions."cabal-8.8".tests.multistate-test; }
+    { name = "cabal-8.10"; path = versions."cabal-8.10".tests.multistate-test; }
+    { name = "cabal-check"; path = versions."cabal-8.10".tests.cabal-check; }
   ];
+  tests-summary = pkgs.runCommand "multistate-test-summary" {} ''
+    touch $out
+    echo -en "stack 8.4\n  " >> $out
+    grep "examples" "${versions."stack-8.4".tests.multistate-test}" >> $out
+    echo -en "stack 8.6\n  " >> $out
+    grep "examples" "${versions."stack-8.6".tests.multistate-test}" >> $out
+    echo -en "stack 8.8\n  " >> $out
+    grep "examples" "${versions."stack-8.8".tests.multistate-test}" >> $out
+    echo -en "cabal 8.4\n  " >> $out
+    grep "examples" "${versions."cabal-8.4".tests.multistate-test}" >> $out
+    echo -en "cabal 8.6\n  " >> $out
+    grep "examples" "${versions."cabal-8.6".tests.multistate-test}" >> $out
+    echo -en "cabal 8.8\n  " >> $out
+    grep "examples" "${versions."cabal-8.8".tests.multistate-test}" >> $out
+    echo -en "cabal 8.10\n  " >> $out
+    grep "examples" "${versions."cabal-8.10".tests.multistate-test}" >> $out
+    echo -en "cabal check\n  " >> $out
+    cat "${versions."cabal-8.10".tests.cabal-check}" >> $out
+  '';
 }

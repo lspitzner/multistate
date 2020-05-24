@@ -27,7 +27,7 @@ in rec {
     in pkg-set.config.hsPkgs;
 
   multistate = hsPkgs.multistate;
-  tests = hsPkgs.multistate.checks.multistate-test;
+  tests = { inherit (hsPkgs.multistate.checks) multistate-test cabal-check; };
   shell = hsPkgs.shellFor {
     # Include only the *local* packages of your project.
     packages = ps: with ps; [

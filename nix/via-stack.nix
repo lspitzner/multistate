@@ -32,7 +32,7 @@ let
   # ));
   multistate-plan = pkgs.haskell-nix.cabalFileToStackagePlan {
     name = "multistate";
-    src = pkgs.haskell-nix.haskellLib.cleanGit { name = "multistate"; src = ./..; };
+    src = ./..;
     inherit resolver;
   };
   hsPkgs = (pkgs.haskell-nix.mkStackPkgSet {
@@ -45,7 +45,7 @@ in
   {
     inherit multistate-plan hsPkgs pkgs;
     multistate = hsPkgs.multistate;
-    tests = hsPkgs.multistate.checks.multistate-test;
+    tests = { inherit (hsPkgs.multistate.checks) multistate-test cabal-check; };
     shell = hsPkgs.shellFor {
       # Include only the *local* packages of your project.
       packages = ps: with ps; [

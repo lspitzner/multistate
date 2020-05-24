@@ -10,7 +10,11 @@ want to test against all supported ghcs (8.4 - 8.10, currently).
 # (cabal-solved with ghc-8.4 in this case)
 nix-shell nix/all.nix -A '"cabal-8.4".shell'
 # run all tests an show summary lines of test output
-find -L $(nix-build ./nix/all.nix -A test-all -o nix-output-tests) -mindepth 1 | sort -n | xargs -I{} bash -c "echo {}; grep examples {}"
+find -L $(nix-build ./nix/all.nix -A test-all -o nix-output-tests) -mindepth 1 | sort -n | xargs -I{} bash -c "echo {}; cat {}"
+# show a nice CI-like summary
+cat $(nix-build ./nix/all.nix -A tests-summary)
+# if you have not set up NIX_PATH, use this instead:
+cat $(nix-build ./nix/all-with-hardcoded-nixpkgs.nix -A tests-summary)
 ~~~~
 
 

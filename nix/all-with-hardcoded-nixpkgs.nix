@@ -1,7 +1,7 @@
 let
   haskellNix = import (
     builtins.fetchTarball
-      https://github.com/lspitzner/haskell.nix/archive/4560bbb5f95e81e2b78efb7c4b4b55aa899e6f29.tar.gz
+      https://github.com/lspitzner/haskell.nix/archive/3e32c4af7465c410ebe151f2c26ba2e97ba0d5fb.tar.gz
   ) { version = 2; };
   nixpkgsSrc = haskellNix.sources.nixpkgs-1909;
 in
