@@ -1,1 +1,1 @@
-(import ./nix/all.nix {}).default.multistate
+(import ./nix/all.nix).default.multistate

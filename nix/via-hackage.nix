@@ -1,4 +1,5 @@
-{ pkgs ? import <nixpkgs.nix>
+{ pkgs
+, cleanedSource
 , pkg-def-extras ? []
 , ghc-ver
 , index-state
@@ -7,7 +8,7 @@
 }:
 let
   multistate-plan = pkgs.haskell-nix.importAndFilterProject (pkgs.haskell-nix.callCabalProjectToNix {
-    src = pkgs.haskell-nix.haskellLib.cleanGit { src = ./..; name = "multistate-" + ghc-ver; };
+    src = cleanedSource; # pkgs.haskell-nix.haskellLib.cleanGit { src = ./..; name = "multistate-" + ghc-ver; };
     inherit index-state plan-sha256 materialized;
     # ghc = pkgs.haskell-nix.compiler.${ghc-ver};
     compiler-nix-name = ghc-ver;
@@ -26,8 +27,8 @@ in rec {
               };
     in pkg-set.config.hsPkgs;
 
-  multistate = hsPkgs.multistate;
-  tests = { inherit (hsPkgs.multistate.checks) multistate-test cabal-check; };
+  inherit (hsPkgs) multistate;
+  inherit (hsPkgs.multistate) checks;
   shell = hsPkgs.shellFor {
     # Include only the *local* packages of your project.
     packages = ps: with ps; [

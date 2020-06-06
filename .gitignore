@@ -1,5 +1,7 @@
 dist/
 dist-newstyle/
+ci-out/
+./result*
 .cabal-sandbox/
 cabal.sandbox.config
 README.pdf

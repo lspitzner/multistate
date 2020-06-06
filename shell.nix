@@ -1,1 +1,1 @@
-(import ./nix/all.nix {}).default.shell
+(import ./nix/all.nix).default.shell
