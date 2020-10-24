@@ -73,7 +73,7 @@ let
       # plan-sha256 = "1s8a6cb5qgf4ky5s750rzx6aa52slp1skazh8kbx0dbfjd6df7yw";
       # materialized = ./materialized/hackage-8.10;
     });
-    } else builtins.trace "warn: ghc 8.10 is not avaiable, will not be tested!" {}
+    } else builtins.trace "warn: ghc 8.10 is not available, will not be tested!" {}
   );
   linkFarmFromDrvs = name: drvs:
     let mkEntryFromDrv = drv: { name = drv.name; path = drv; };
