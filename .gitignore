@@ -1,10 +1,13 @@
 dist/
 dist-newstyle/
-ci-out/
-./result*
 .cabal-sandbox/
 cabal.sandbox.config
 README.pdf
 .stack-work/
 .ghc.environment.*
 cabal.project.local
+/result*
+/nix/seaaye-cache
+/nix/gcroots
+/nix/ci-out
+/seaaye-local.nix
