@@ -68,7 +68,7 @@ library {
   other-modules:
     Control.Monad.Trans.MultiGST.Common
   build-depends:
-    base         >= 4.11  && <4.16,
+    base         >= 4.11  && <4.17,
     mtl          >= 2.1   && <2.3,
     transformers >= 0.3   && <0.6,
     tagged       >= 0.7   && <0.9,
@@ -79,6 +79,7 @@ library {
     TypeFamilies
     MultiParamTypeClasses
     FunctionalDependencies
+    FlexibleContexts
     FlexibleInstances
     UndecidableInstances
     TypeOperators
@@ -103,7 +104,7 @@ test-suite multistate-test {
     multistate,
     base <999,
     transformers <0.6,
-    hspec >=2 && <2.8
+    hspec >=2 && <2.9
   ghc-options:      -Wall
   main-is:          Test.hs
   hs-source-dirs:   test

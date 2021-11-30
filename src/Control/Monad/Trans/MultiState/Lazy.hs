@@ -132,7 +132,7 @@ instance (Applicative m, Monad m) => Applicative (MultiStateT x m) where
   (<*>) = ap
 
 instance Monad m => Monad (MultiStateT x m) where
-  return = MultiStateT . return
+  return = pure
   k >>= f = MultiStateT $ runMultiStateTRaw k >>= (runMultiStateTRaw.f)
 
 instance MonadTrans (MultiStateT x) where

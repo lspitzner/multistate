@@ -115,7 +115,7 @@ instance (Applicative m, Monad m) => Applicative (MultiReaderT x m) where
   (<*>) = ap
 
 instance Monad m => Monad (MultiReaderT x m) where
-  return = MultiReaderT . return
+  return = pure
   k >>= f = MultiReaderT $ runMultiReaderTRaw k >>= (runMultiReaderTRaw . f)
 
 instance MonadTrans (MultiReaderT x) where

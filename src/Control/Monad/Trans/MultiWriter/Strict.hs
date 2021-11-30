@@ -120,7 +120,7 @@ instance (Applicative m, Monad m) => Applicative (MultiWriterT x m) where
   (<*>) = ap
 
 instance Monad m => Monad (MultiWriterT x m) where
-  return = MultiWriterT . return
+  return = pure
   k >>= f = MultiWriterT $ runMultiWriterTRaw k >>= (runMultiWriterTRaw.f)
 
 instance MonadTrans (MultiWriterT x) where
