@@ -136,7 +136,7 @@ instance (Applicative m, Monad m) => Applicative (MultiRWST r w s m) where
   (<*>) = ap
 
 instance (Monad m) => Monad (MultiRWST r w s m) where
-  return = MultiRWST . return
+  return = pure
   k >>= f = MultiRWST $ runMultiRWSTRaw k >>= runMultiRWSTRaw . f
 
 instance MonadTrans (MultiRWST r w s) where

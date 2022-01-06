@@ -85,23 +85,23 @@ import Data.Monoid
 
 
 -- | A Writer transformer monad patameterized by:
---   
+--
 -- * x - The list of types that can be written (Monoid instances).
 -- * m - The inner monad.
--- 
+--
 -- 'MultiWriterT' corresponds to mtl's 'WriterT', but can contain
 -- a heterogenous list of types.
--- 
+--
 -- This heterogenous list is represented using Types.Data.List, i.e:
--- 
+--
 --   * @'[]@ - The empty list,
 --   * @a ': b@ - A list where @/a/@ is an arbitrary type
 --     and @/b/@ is the rest list.
--- 
+--
 -- For example,
--- 
+--
 -- > MultiWriterT '[Int, Bool] :: (* -> *) -> (* -> *)
--- 
+--
 -- is a Writer transformer containing the types [Int, Bool].
 newtype MultiWriterT x m a = MultiWriterT {
   runMultiWriterTRaw :: StateT (HList x) m a
@@ -120,7 +120,7 @@ instance (Applicative m, Monad m) => Applicative (MultiWriterT x m) where
   (<*>) = ap
 
 instance Monad m => Monad (MultiWriterT x m) where
-  return = MultiWriterT . return
+  return = pure
   k >>= f = MultiWriterT $ runMultiWriterTRaw k >>= (runMultiWriterTRaw . f)
 
 instance MonadTrans (MultiWriterT x) where

@@ -76,23 +76,23 @@ import Control.Monad.IO.Class          ( MonadIO(..) )
 
 
 -- | A Reader transformer monad patameterized by:
---   
+--
 -- * x - The list of types constituting the environment / input (to be read),
 -- * m - The inner monad.
--- 
+--
 -- 'MultiReaderT' corresponds to mtl's 'ReaderT', but can contain
 -- a heterogenous list of types.
--- 
+--
 -- This heterogenous list is represented using Types.Data.List, i.e:
--- 
+--
 --   * @'[]@ - The empty list,
 --   * @a ': b@ - A list where @/a/@ is an arbitrary type
 --     and @/b/@ is the rest list.
--- 
+--
 -- For example,
--- 
+--
 -- > MultiReaderT '[Int, Bool] :: (* -> *) -> (* -> *)
--- 
+--
 -- is a Reader transformer containing the types [Int, Bool].
 newtype MultiReaderT x m a = MultiReaderT {
   runMultiReaderTRaw :: StateT (HList x) m a
@@ -115,7 +115,7 @@ instance (Applicative m, Monad m) => Applicative (MultiReaderT x m) where
   (<*>) = ap
 
 instance Monad m => Monad (MultiReaderT x m) where
-  return = MultiReaderT . return
+  return = pure
   k >>= f = MultiReaderT $ runMultiReaderTRaw k >>= (runMultiReaderTRaw . f)
 
 instance MonadTrans (MultiReaderT x) where
@@ -209,7 +209,7 @@ instance (MonadWriter w m) => MonadWriter w (MultiReaderT c m) where
     runMultiReaderTRaw
   pass = MultiReaderT .
     mapStateT (pass . liftM (\((a, f), w) -> ((a, w), f))) .
-    runMultiReaderTRaw  
+    runMultiReaderTRaw
 
 instance MonadIO m => MonadIO (MultiReaderT c m) where
   liftIO = lift . liftIO

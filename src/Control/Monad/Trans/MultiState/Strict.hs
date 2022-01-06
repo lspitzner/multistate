@@ -92,23 +92,23 @@ import Control.Monad.IO.Class          ( MonadIO(..) )
 
 
 -- | A State transformer monad patameterized by:
---   
+--
 -- * x - The list of types constituting the state,
 -- * m - The inner monad.
--- 
+--
 -- 'MultiStateT' corresponds to mtl's 'StateT', but can contain
 -- a heterogenous list of types.
--- 
+--
 -- This heterogenous list is represented using Types.Data.List, i.e:
--- 
+--
 --   * @'[]@ - The empty list,
 --   * @a ': b@ - A list where @/a/@ is an arbitrary type
 --     and @/b/@ is the rest list.
--- 
+--
 -- For example,
--- 
+--
 -- > MultiStateT '[Int, Bool] :: (* -> *) -> (* -> *)
--- 
+--
 -- is a State wrapper containing the types [Int, Bool].
 newtype MultiStateT x m a = MultiStateT {
   runMultiStateTRaw :: StateT (HList x) m a
@@ -130,7 +130,7 @@ instance (Applicative m, Monad m) => Applicative (MultiStateT x m) where
   (<*>) = ap
 
 instance Monad m => Monad (MultiStateT x m) where
-  return = MultiStateT . return
+  return = pure
   k >>= f = MultiStateT $ runMultiStateTRaw k >>= (runMultiStateTRaw.f)
 
 instance MonadTrans (MultiStateT x) where
@@ -221,11 +221,11 @@ withMultiStates_  :: (Functor m, Monad m) => HList s1 -> MultiStateT (Append s1 
 withMultiStates = withMultiStatesAS
 withMultiStatesAS HNil       = liftM (\r -> (r, HNil))
 withMultiStatesAS (x :+: xs) = liftM (\((a, x'), xs') -> (a, x' :+: xs'))
-                        . withMultiStatesAS xs 
+                        . withMultiStatesAS xs
                         . withMultiStateAS x
 withMultiStatesSA HNil       = liftM (\r -> (HNil, r))
 withMultiStatesSA (x :+: xs) = liftM (\((a, x'), xs') -> (x' :+: xs', a))
-                        . withMultiStatesAS xs 
+                        . withMultiStatesAS xs
                         . withMultiStateAS x
 withMultiStatesA  HNil       = id
 withMultiStatesA  (x :+: xs) = withMultiStatesA xs . withMultiStateA x
@@ -280,7 +280,7 @@ instance (MonadWriter w m) => MonadWriter w (MultiStateT c m) where
     runMultiStateTRaw
   pass = MultiStateT .
     mapStateT (pass . liftM (\((a, f), w) -> ((a, w), f))) .
-    runMultiStateTRaw  
+    runMultiStateTRaw
 
 instance MonadIO m => MonadIO (MultiStateT c m) where
   liftIO = lift . liftIO
