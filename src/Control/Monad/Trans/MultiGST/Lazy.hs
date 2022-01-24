@@ -3,6 +3,7 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE UndecidableSuperClasses #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 -- | Alternative multi-valued version of mtl's RWS / RWST. In contrast to
 -- @'MultiRWS'(T)@ this version only takes a single list of types as
