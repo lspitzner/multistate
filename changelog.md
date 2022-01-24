@@ -1,5 +1,10 @@
 # Changelog for [`multistate` package](https://hackage.haskell.org/package/multistate)
 
+## 0.8.0.4 *January 2022*
+
+  * Adapt for ghc-9.0 and ghc-9.2
+  * Clean up code a bit, fix compiler warnings (thanks sergv)
+
 ## 0.8.0.3 *May 2020*
 
   * Adapt for ghc-8.10
